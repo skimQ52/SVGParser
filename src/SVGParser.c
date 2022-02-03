@@ -2,7 +2,7 @@
 *  Includes all functions that are in SVGParser.h and in the assignment Modules 1 and 2
 *  Author: Skylar Mawle 1143676
 *  CIS*2750 D. Nikitenko
-*
+*  Sample code used and altered from http://www.xmlsoft.org/examples/tree1.c (in function createSVG)
 */
 
 #include "SVGParser.h"
@@ -11,6 +11,10 @@
 //================================================= MODULE 1
 
 SVG* createSVG(const char* fileName) {
+
+    if (fileName == NULL) {
+        return NULL;
+    }
 
     SVG* mySVG = malloc(sizeof(SVG));
     xmlDoc *xDoc;
@@ -59,6 +63,10 @@ SVG* createSVG(const char* fileName) {
 }
 
 char* SVGToString(const SVG* img) {
+
+    if (img == NULL) {
+        return NULL;
+    }
 
     char *oaStr = toString(img->otherAttributes);
     char *reStr = toString(img->rectangles);
@@ -211,7 +219,7 @@ int comparePaths(const void *first, const void *second){
 //---------------------------------ACCESSORS
 List* getRects(const SVG* img) {
 
-    List* newRects = initializeList(&rectangleToString, &dummyDelete, &compareRectangles);
+    List* newRects = initializeList(&rectangleToString, &dummyDelete, &compareRectangles);//init with dummy delete
 
     if (img == NULL) {
         return newRects;
@@ -221,14 +229,16 @@ List* getRects(const SVG* img) {
     void* elem2;
     ListIterator iter = createIterator(img->rectangles);
 
-    while((elem = nextElement(&iter)) != NULL) {
+    while((elem = nextElement(&iter)) != NULL) {//get all independent rects
 
         insertBack(newRects, elem);
     }
     
-    ListIterator iter2 = createIterator(img->groups);
+    List* groups = getGroups(img);
+    
+    ListIterator iter2 = createIterator(groups);
 
-    while ((elem = nextElement(&iter2)) != NULL) {
+    while ((elem = nextElement(&iter2)) != NULL) {//get rects in groups
         Group* gro = (Group*)elem;
         ListIterator iter3 = createIterator(gro->rectangles);
         while ((elem2 = nextElement(&iter3)) != NULL) {
@@ -236,15 +246,15 @@ List* getRects(const SVG* img) {
             insertBack(newRects, elem2);
         }
     }
-
+    freeList(groups);//free list of groups gotten
     return newRects;
 }
 
 List* getCircles(const SVG* img) {
 
-    List* newCircles = initializeList(&circleToString, &dummyDelete, &compareCircles);
+    List* newCircles = initializeList(&circleToString, &dummyDelete, &compareCircles);//init list with dummy delete
 
-    if (img == NULL) {
+    if (img == NULL) {//if img is null retuyrn empty list
         return newCircles;
     }
 
@@ -252,14 +262,15 @@ List* getCircles(const SVG* img) {
     void* elem2;
     ListIterator iter = createIterator(img->circles);
 
-    while((elem = nextElement(&iter)) != NULL) {
+    while((elem = nextElement(&iter)) != NULL) {//get independent circles
 
         insertBack(newCircles, elem);
     }
     
-    ListIterator iter2 = createIterator(img->groups);
+    List* groups = getGroups(img);
+    ListIterator iter2 = createIterator(groups);
 
-    while ((elem = nextElement(&iter2)) != NULL) {
+    while ((elem = nextElement(&iter2)) != NULL) {//get circles in all groups
         Group* gro = (Group*)elem;
         ListIterator iter3 = createIterator(gro->circles);
         while ((elem2 = nextElement(&iter3)) != NULL) {
@@ -268,6 +279,7 @@ List* getCircles(const SVG* img) {
         }
     }
 
+    freeList(groups);
     return newCircles;
 }
 
@@ -280,18 +292,13 @@ List* getGroups(const SVG* img) {
     }
 
     void* elem;
-    void* elem2;
-    ListIterator iter = createIterator(img->groups);
+    ListIterator iter = createIterator(img->groups);//parent iterator
 
     while((elem = nextElement(&iter)) != NULL) {
 
-        insertBack(newGroups, elem);
+        insertBack(newGroups, elem);//insert all paraent iterators
         Group* gro = (Group*)elem;
-        ListIterator iter2 = createIterator(gro->groups);
-        while ((elem2 = nextElement(&iter2)) != NULL) {
-
-            insertBack(newGroups, elem2);
-        }
+        formGroups(gro, newGroups);
     }
 
     return newGroups;
@@ -314,7 +321,8 @@ List* getPaths(const SVG* img) {
         insertBack(newPaths, elem);
     }
     
-    ListIterator iter2 = createIterator(img->groups);
+    List* groups = getGroups(img);
+    ListIterator iter2 = createIterator(groups);
 
     while ((elem = nextElement(&iter2)) != NULL) {
         Group* gro = (Group*)elem;
@@ -325,6 +333,7 @@ List* getPaths(const SVG* img) {
         }
     }
 
+    freeList(groups);
     return newPaths;
 }
 
@@ -332,18 +341,18 @@ List* getPaths(const SVG* img) {
 //-----------------------------SUMMARIES
 int numRectsWithArea(const SVG* img, float area) {
 
-    if (img == NULL || area <= 0) {
+    if (img == NULL || area <= 0) {//if invalid parameters return 0
         return 0;
     }
 
-    List* rects = getRects(img);
+    List* rects = getRects(img);//get all rects
     void* elem;
     int count = 0;
     int rArea;
 
     ListIterator iter = createIterator(rects);
     elem = nextElement(&iter);
-    while(elem != NULL) {
+    while(elem != NULL) {//search all rects for proper ones
         Rectangle* r = (Rectangle*)elem;
 
         rArea = ceil(r->width * r->height);
@@ -354,13 +363,13 @@ int numRectsWithArea(const SVG* img, float area) {
         elem = nextElement(&iter);
     }
 
-    freeList(rects);
+    freeList(rects);//free the list we got
     return count;
 }
 
 int numCirclesWithArea(const SVG* img, float area) {
 
-    if (img == NULL || area <= 0) {
+    if (img == NULL || area <= 0) {//if invalid parameters return 0
         return 0;
     }
 
@@ -374,7 +383,7 @@ int numCirclesWithArea(const SVG* img, float area) {
     while(elem != NULL) {
         Circle* c = (Circle*)elem;
 
-        cArea = ceil(acos(0)*2*c->r*c->r);//
+        cArea = ceil(acos(0)*2*c->r*c->r);//AREA OF CIRCLE = (pi)r^2
 
         if (cArea == ceil(area)) {
             count++;
@@ -494,3 +503,4 @@ int numAttr(const SVG* img) {
     return count;
 }
 //--------------------------------------END OF MODULE 2
+

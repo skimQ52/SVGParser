@@ -15,8 +15,8 @@ void dummyDelete(void *data) {
 //CREATE FUNCTIONS
 Attribute *createAttribute(xmlAttr *prop) {
 
-    Attribute *newAttribute = malloc(sizeof(Attribute) + sizeof(char)*(strlen((const char*)prop->children->content)+1));//malloc enough space for Attribute, and two strings including name flexible array "value[]"
-    newAttribute->name = malloc(sizeof(char)*(strlen((const char*)prop->name)+1));
+    Attribute *newAttribute = calloc(1, (sizeof(Attribute) + sizeof(char)*(strlen((const char*)prop->children->content)+1)));//malloc enough space for Attribute, and two strings including name flexible array "value[]"
+    newAttribute->name = calloc(1, (sizeof(char)*(strlen((const char*)prop->name)+1)));
     strcpy(newAttribute->name, (const char*)prop->name);
     strcpy(newAttribute->value, (const char*)prop->children->content);//get string value of attribute's value
     return newAttribute;
@@ -24,29 +24,31 @@ Attribute *createAttribute(xmlAttr *prop) {
 
 Rectangle *createRectangle(xmlNode *node) {//helper function to create a Rectangle item from a xmlNode
 
-    Rectangle *newRectangle = malloc(sizeof(Rectangle));
+    Rectangle *newRectangle = calloc(1, sizeof(Rectangle));
     newRectangle->otherAttributes = initializeList(&attributeToString, &deleteAttribute, &compareAttributes);
     struct _xmlAttr *prop;
     char *propStr;
     char *ptr;
+    newRectangle->x = 0;
+    newRectangle->y = 0;
     for (prop = node->properties; prop != NULL; prop = prop->next) {
         propStr = malloc(sizeof(char)*(strlen((const char*)prop->children->content)+1));//malloc enough space for temp string
         strcpy(propStr, (const char*)prop->children->content);//get string value of attribute's value
         
         if (strcmp((const char*)prop->name, "x") == 0) {
-            newRectangle->x= strtof(propStr, &ptr);
+            newRectangle->x = strtof(propStr, &ptr);
             strcpy(newRectangle->units, ptr);
         }
         else if (strcmp((const char*)prop->name, "y") == 0) {
-            newRectangle->y= strtof(propStr, &ptr);
+            newRectangle->y = strtof(propStr, &ptr);
             strcpy(newRectangle->units, ptr);
         }
         else if (strcmp((const char*)prop->name, "width") == 0) {//must be >= 0
-            newRectangle->width= strtof(propStr, &ptr);
+            newRectangle->width = strtof(propStr, &ptr);
             strcpy(newRectangle->units, ptr);
         }
         else if (strcmp((const char*)prop->name, "height") == 0) {//must be >= 0
-            newRectangle->height= strtof(propStr, &ptr);
+            newRectangle->height = strtof(propStr, &ptr);
             strcpy(newRectangle->units, ptr);
         }
         else {//is a other attribute, add to other attributes.
@@ -60,11 +62,13 @@ Rectangle *createRectangle(xmlNode *node) {//helper function to create a Rectang
 
 Circle *createCircle(xmlNode *node) {//helper function to create a Circle item from a xmlNode
 
-    Circle *newCircle = malloc(sizeof(Circle));
+    Circle *newCircle = calloc(1, sizeof(Circle));
     newCircle->otherAttributes = initializeList(&attributeToString, &deleteAttribute, &compareAttributes);
     struct _xmlAttr *prop;
     char *propStr;
     char *ptr;
+    newCircle->cx = 0;
+    newCircle->cy = 0;
     for (prop = node->properties; prop != NULL; prop = prop->next) {
         propStr = malloc(sizeof(char)*(strlen((const char*)prop->children->content)+1));//malloc enough space for temp string
         strcpy(propStr, (const char*)prop->children->content);//get string value of attribute's value
@@ -92,7 +96,7 @@ Circle *createCircle(xmlNode *node) {//helper function to create a Circle item f
 
 Path *createPath(xmlNode *node) {//helper function to create a Path item from a xmlNode
 
-    Path *newPath = malloc(sizeof(Path));//data memebr is a flexible array!
+    Path *newPath = calloc(1, sizeof(Path));//data memebr is a flexible array!
     newPath->otherAttributes = initializeList(&attributeToString, &deleteAttribute, &compareAttributes);
     struct _xmlAttr *prop;
 
@@ -112,7 +116,7 @@ Path *createPath(xmlNode *node) {//helper function to create a Path item from a 
 
 Group *createGroup(xmlNode *node) {//helper function to create a Path item from a xmlNode
 
-    Group *newGroup = malloc(sizeof(Group));//allocate space for a Group!
+    Group *newGroup = calloc(1, sizeof(Group));//allocate space for a Group!
     newGroup->rectangles = initializeList(&rectangleToString, &deleteRectangle, &compareRectangles);
     newGroup->paths = initializeList(&pathToString, &deletePath, &comparePaths);
     newGroup->circles = initializeList(&circleToString, &deleteCircle, &compareCircles);
@@ -207,3 +211,17 @@ void parseXMLGroup(Group* myGroup, xmlNode *node) {
 
     return;
 }
+
+void formGroups(Group* reGroup, List *newGroups) {
+
+    void* elem;
+    ListIterator iter = createIterator(reGroup->groups);//recursive iterator
+
+    while((elem = nextElement(&iter)) != NULL) {
+        insertBack(newGroups, elem);//insert all paraent iterators
+        Group* gro = (Group*)elem;
+        formGroups(gro, newGroups);
+    }
+    return;
+}
+

@@ -20,7 +20,9 @@ Path *createPath(xmlNode *node);
 
 Group *createGroup(xmlNode *node);
 
-
+//other helpers
 void parseXML(SVG* mySVG, xmlNode *node);
 
 void parseXMLGroup(Group* myGroup, xmlNode *node);
+
+void formGroups(Group* reGroup, List *newGroups);
