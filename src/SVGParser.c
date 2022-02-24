@@ -747,7 +747,7 @@ bool setAttribute(SVG* img, elementType elemType, int elemIndex, Attribute* newA
 
     else if (elemType == 1) {//CIRC is 1st
 
-        if (elemIndex >= getLength(img->circles)) {//out of bounds!
+        if (elemIndex >= getLength(img->circles) || elemIndex < 0) {//out of bounds!
             return false;
         }
 
@@ -801,7 +801,7 @@ bool setAttribute(SVG* img, elementType elemType, int elemIndex, Attribute* newA
 
     else if (elemType == 2) {//RECT is 2nd
 
-        if (elemIndex >= getLength(img->rectangles)) {//out of bounds!
+        if (elemIndex >= getLength(img->rectangles) || elemIndex < 0) {//out of bounds!
             return false;
         }
 
@@ -859,7 +859,7 @@ bool setAttribute(SVG* img, elementType elemType, int elemIndex, Attribute* newA
 
     else if (elemType == 3) {//PATH is 3rd
 
-        if (elemIndex >= getLength(img->paths)) {//out of bounds!
+        if (elemIndex >= getLength(img->paths) || elemIndex < 0) {//out of bounds!
             return false;
         }
 
@@ -913,7 +913,7 @@ bool setAttribute(SVG* img, elementType elemType, int elemIndex, Attribute* newA
 
     else {//GROUP is 4th
 
-        if (elemIndex >= getLength(img->groups)) {//out of bounds!
+        if (elemIndex >= getLength(img->groups) || elemIndex < 0) {//out of bounds!
             return false;
         }
 
