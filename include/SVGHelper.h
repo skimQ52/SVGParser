@@ -7,6 +7,7 @@
 #include <math.h>
 #include "SVGParser.h"
 #include <stdlib.h>
+#include <string.h>
 
 void dummyDelete(void *data);
 
@@ -32,6 +33,8 @@ void formGroups(Group* reGroup, List *newGroups);
 
 bool validateXMLTree(xmlDocPtr xDoc, const char* schemaFileName);
 
-void svgToXmlGroup(xmlNodePtr rootNode, Group* gro);
+bool svgToXmlGroup(xmlNodePtr rootNode, Group* gro);
 
 xmlDocPtr svgToXml(const SVG *img);
+
+char *strndup2(const char *s, size_t n);

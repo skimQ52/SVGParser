@@ -258,96 +258,136 @@ bool validateXMLTree(xmlDocPtr xDoc, const char* schemaFileName) {
 }
 
 //Recursive version of svgToXml for groups!
-void svgToXmlGroup(xmlNodePtr rootNode, Group* gro) {
+bool svgToXmlGroup(xmlNodePtr rootNode, Group* gro) {
 
     void* elem;
     void* elem2;
     xmlNodePtr node = NULL;
 
     //GET OTHERATTRIBUTES OF GRO ELEMENT
+    if (gro->otherAttributes == NULL) {
+        xmlCleanupParser();
+        return false;
+    }
     ListIterator iter = createIterator(gro->otherAttributes);
 
     while((elem = nextElement(&iter)) != NULL) {
         Attribute* att = (Attribute*)elem;
-        xmlNewProp(rootNode, att->name, att->value);
+        xmlNewProp(rootNode, (const xmlChar *)att->name, (const xmlChar *)att->value);
     }
 
     //Create CHILDREN RECTS OF SVG ELEMENT
+    if (gro->rectangles == NULL) {
+        xmlCleanupParser();
+        return false;
+    }
     iter = createIterator(gro->rectangles);
 
     while ((elem = nextElement(&iter)) != NULL) {
         Rectangle* rec = (Rectangle*)elem;
-        node = xmlNewChild(rootNode, NULL, "rect", NULL);//create rectangle
+        node = xmlNewChild(rootNode, NULL, (const xmlChar *)"rect", NULL);//create rectangle
 
         //set all default attributes
         //formulate strings needed for property values
         char str[256];
         sprintf(str, "%f%s", rec->x, rec->units);
-        xmlNewProp(node, "x", str);
+        xmlNewProp(node, (const xmlChar *)"x", (const xmlChar *)str);
         sprintf(str, "%f%s", rec->y, rec->units);
-        xmlNewProp(node, "y", str);
+        xmlNewProp(node, (const xmlChar *)"y", (const xmlChar *)str);
         sprintf(str, "%f%s", rec->width, rec->units);
-        xmlNewProp(node, "width", str);
+        xmlNewProp(node, (const xmlChar *)"width", (const xmlChar *)str);
         sprintf(str, "%f%s", rec->height, rec->units);
-        xmlNewProp(node, "height", str);
+        xmlNewProp(node, (const xmlChar *)"height", (const xmlChar *)str);
 
         //set otherAttributes.
+        if (rec->otherAttributes == NULL) {
+            xmlCleanupParser();
+            return false;
+        }
         ListIterator iter2 = createIterator(rec->otherAttributes);
         while ((elem2 = nextElement(&iter2)) != NULL) {//for each other element
             Attribute* att = (Attribute*)elem2;//cast elem 2 as attribute
-            xmlNewProp(node, att->name, att->value);//add property to rec node.
+            xmlNewProp(node, (const xmlChar *)att->name, (const xmlChar *)att->value);//add property to rec node.
         }
     }
 
     //Create CHILDREN CIRCLES OF SVG ELEMENT
+    if (gro->circles == NULL) {
+        xmlCleanupParser();
+        return false;
+    }
     iter = createIterator(gro->circles);
 
     while ((elem = nextElement(&iter)) != NULL) {
         Circle* cir = (Circle*)elem;
-        node = xmlNewChild(rootNode, NULL, "circle", NULL);//create circle
+        node = xmlNewChild(rootNode, NULL, (const xmlChar *)"circle", NULL);//create circle
 
         //set all default attributes
         char str[256];
         sprintf(str, "%f%s", cir->cx, cir->units);
-        xmlNewProp(node, "cx", str);
+        xmlNewProp(node, (const xmlChar *)"cx", (const xmlChar *)str);
         sprintf(str, "%f%s", cir->cy, cir->units);
-        xmlNewProp(node, "cy", str);
+        xmlNewProp(node, (const xmlChar *)"cy", (const xmlChar *)str);
         sprintf(str, "%f%s", cir->r, cir->units);
-        xmlNewProp(node, "r", str);
+        xmlNewProp(node, (const xmlChar *)"r", (const xmlChar *)str);
 
         //set otherAttributes.
+        if (cir->otherAttributes == NULL) {
+            xmlCleanupParser();
+            return false;
+        }
         ListIterator iter2 = createIterator(cir->otherAttributes);
         while ((elem2 = nextElement(&iter2)) != NULL) {//for each other element
             Attribute* att = (Attribute*)elem2;//cast elem 2 as attribute
-            xmlNewProp(node, att->name, att->value);//add property to circle node.
+            xmlNewProp(node, (const xmlChar *)att->name, (const xmlChar *)att->value);//add property to circle node.
         }
     }
 
     //Create CHILDREN PATHS OF GROUP ELEMENT
+    if (gro->paths == NULL) {
+        xmlCleanupParser();
+        return false;
+    }
     iter = createIterator(gro->paths);
 
     while ((elem = nextElement(&iter)) != NULL) {
         Path* pat = (Path*)elem;
-        node = xmlNewChild(rootNode, NULL, "path", NULL);//create path
+        node = xmlNewChild(rootNode, NULL, (const xmlChar *)"path", NULL);//create path
 
+        if (pat->data == NULL) {
+            xmlCleanupParser();
+            return false;
+        }
         //set all default attributes
-        xmlNewProp(node, "d", pat->data);
+        xmlNewProp(node, (const xmlChar *)"d", (const xmlChar *)pat->data);
 
         //set otherAttributes.
+        if (pat->otherAttributes == NULL) {
+            xmlCleanupParser();
+            return false;
+        }
         ListIterator iter2 = createIterator(pat->otherAttributes);
         while ((elem2 = nextElement(&iter2)) != NULL) {//for each other element
             Attribute* att = (Attribute*)elem2;//cast elem 2 as attribute
-            xmlNewProp(node, att->name, att->value);//add property to path node.
+            xmlNewProp(node, (const xmlChar *)att->name, (const xmlChar *)att->value);//add property to path node.
         }
     }
 
     //CREATE CHILDREN GROUPS OF GROup ELEMENT
+    if (gro->groups == NULL) {
+        xmlCleanupParser();
+        return false;
+    }
     iter = createIterator(gro->groups);
     while ((elem = nextElement(&iter)) != NULL) {
         Group* gro2 = (Group*)elem;
-        node = xmlNewChild(rootNode, NULL, "g", NULL);//create group
-        svgToXmlGroup(node, gro2);
+        node = xmlNewChild(rootNode, NULL, (const xmlChar *)"g", NULL);//create group
+        if (!svgToXmlGroup(node, gro2)) {
+            xmlCleanupParser();
+            return false;
+        }
     }
+    return true;
 }
 
 //Helper function that converts an SVG into an xmlDoc struct, i.e. a libxml tree. This tree can be then be easily saved
@@ -359,11 +399,11 @@ xmlDocPtr svgToXml(const SVG *img) {
     xmlNodePtr node = NULL;
     xmlNsPtr ns = NULL;
 
-    xDoc = xmlNewDoc("1.0");//create new doc version 1.0
-    rootNode = xmlNewNode(NULL, "svg");//create svg root node
+    xDoc = xmlNewDoc((const xmlChar *)"1.0");//create new doc version 1.0
+    rootNode = xmlNewNode(NULL, (const xmlChar *)"svg");//create svg root node
 
     //create ns pointer then set rootNode to have this ns
-    ns = xmlNewNs(rootNode, img->namespace, NULL);//need to have rootNode?\
+    ns = xmlNewNs(rootNode, (const xmlChar *)img->namespace, NULL);//need to have rootNode?
     xmlSetNs(rootNode, ns);
     
     xmlDocSetRootElement(xDoc, rootNode);
@@ -371,96 +411,162 @@ xmlDocPtr svgToXml(const SVG *img) {
     //GET OTHERATTRIBUTES OF SVG ELEMENT
     void* elem;
     void* elem2;
+
+    if (img->otherAttributes == NULL) {
+        xmlFreeDoc(xDoc);
+        xmlCleanupParser();
+        return NULL;
+    }
     ListIterator iter = createIterator(img->otherAttributes);
 
     while((elem = nextElement(&iter)) != NULL) {
         Attribute* att = (Attribute*)elem;
-        xmlNewProp(rootNode, att->name, att->value);
+        xmlNewProp(rootNode, (const xmlChar *)att->name, (const xmlChar *)att->value);
     }
 
     //TITLE AND DESCRIPTION
     if (strlen(img->title) > 1) {//if theres a title add the title
-        xmlNewChild(rootNode, NULL, "title", img->title);
+        xmlNewChild(rootNode, NULL, (const xmlChar *)"title", (const xmlChar *)img->title);
     }
     if (strlen(img->description) > 1) {//if theres a desc add the desc
-        xmlNewChild(rootNode, NULL, "desc", img->description);
+        xmlNewChild(rootNode, NULL, (const xmlChar *)"desc", (const xmlChar *)img->description);
     }
     
     //Create CHILDREN RECTS OF SVG ELEMENT
+    if (img->rectangles == NULL) {
+        xmlFreeDoc(xDoc);
+        xmlCleanupParser();
+        return NULL;
+    }
     iter = createIterator(img->rectangles);
 
     while ((elem = nextElement(&iter)) != NULL) {
         Rectangle* rec = (Rectangle*)elem;
-        node = xmlNewChild(rootNode, NULL, "rect", NULL);//create rectangle
+        node = xmlNewChild(rootNode, NULL, (const xmlChar *)"rect", NULL);//create rectangle
 
         //set all default attributes
         //formulate strings needed for property values
         char str[256];
         sprintf(str, "%f%s", rec->x, rec->units);
-        xmlNewProp(node, "x", str);
+        xmlNewProp(node, (const xmlChar *)"x", (const xmlChar *)str);
         sprintf(str, "%f%s", rec->y, rec->units);
-        xmlNewProp(node, "y", str);
+        xmlNewProp(node, (const xmlChar *)"y", (const xmlChar *)str);
         sprintf(str, "%f%s", rec->width, rec->units);
-        xmlNewProp(node, "width", str);
+        xmlNewProp(node, (const xmlChar *)"width", (const xmlChar *)str);
         sprintf(str, "%f%s", rec->height, rec->units);
-        xmlNewProp(node, "height", str);
+        xmlNewProp(node, (const xmlChar *)"height", (const xmlChar *)str);
 
         //set otherAttributes.
+        if (rec->otherAttributes == NULL) {
+            xmlFreeDoc(xDoc);
+            xmlCleanupParser();
+            return NULL;
+        }
         ListIterator iter2 = createIterator(rec->otherAttributes);
         while ((elem2 = nextElement(&iter2)) != NULL) {//for each other element
             Attribute* att = (Attribute*)elem2;//cast elem 2 as attribute
-            xmlNewProp(node, att->name, att->value);//add property to rec node.
+            xmlNewProp(node, (const xmlChar *)att->name, (const xmlChar *)att->value);//add property to rec node.
         }
     }
+
     //Create CHILDREN CIRCLES OF SVG ELEMENT
+    if (img->circles == NULL) {
+        xmlFreeDoc(xDoc);
+        xmlCleanupParser();
+        return NULL;
+    }
     iter = createIterator(img->circles);
 
     while ((elem = nextElement(&iter)) != NULL) {
         Circle* cir = (Circle*)elem;
-        node = xmlNewChild(rootNode, NULL, "circle", NULL);//create circle
+        node = xmlNewChild(rootNode, NULL, (const xmlChar *)"circle", NULL);//create circle
 
         //set all default attributes
         char str[256];
         sprintf(str, "%f%s", cir->cx, cir->units);
-        xmlNewProp(node, "cx", str);
+        xmlNewProp(node, (const xmlChar *)"cx", (const xmlChar *)str);
         sprintf(str, "%f%s", cir->cy, cir->units);
-        xmlNewProp(node, "cy", str);
+        xmlNewProp(node, (const xmlChar *)"cy", (const xmlChar *)str);
         sprintf(str, "%f%s", cir->r, cir->units);
-        xmlNewProp(node, "r", str);
+        xmlNewProp(node, (const xmlChar *)"r", (const xmlChar *)str);
 
         //set otherAttributes.
+        if (cir->otherAttributes == NULL) {
+            xmlFreeDoc(xDoc);
+            xmlCleanupParser();
+            return NULL;
+        }
         ListIterator iter2 = createIterator(cir->otherAttributes);
         while ((elem2 = nextElement(&iter2)) != NULL) {//for each other element
             Attribute* att = (Attribute*)elem2;//cast elem 2 as attribute
-            xmlNewProp(node, att->name, att->value);//add property to circle node.
+            xmlNewProp(node, (const xmlChar *)att->name, (const xmlChar *)att->value);//add property to circle node.
         }
     }
     //Create CHILDREN PATHS OF SVG ELEMENT
+    if (img->paths == NULL) {
+        xmlFreeDoc(xDoc);
+        xmlCleanupParser();
+        return NULL;
+    }
     iter = createIterator(img->paths);
 
     while ((elem = nextElement(&iter)) != NULL) {
         Path* pat = (Path*)elem;
-        node = xmlNewChild(rootNode, NULL, "path", NULL);//create path
+        node = xmlNewChild(rootNode, NULL, (const xmlChar *)"path", NULL);//create path
 
         //set all default attributes
-        xmlNewProp(node, "d", pat->data);
+        if (pat->data == NULL) {
+            xmlFreeDoc(xDoc);
+            xmlCleanupParser();
+            return NULL;
+        }
+        xmlNewProp(node, (const xmlChar *)"d", (const xmlChar *)pat->data);
 
         //set otherAttributes.
+        if (pat->otherAttributes == NULL) {
+            xmlFreeDoc(xDoc);
+            xmlCleanupParser();
+            return NULL;
+        }
         ListIterator iter2 = createIterator(pat->otherAttributes);
         while ((elem2 = nextElement(&iter2)) != NULL) {//for each other element
             Attribute* att = (Attribute*)elem2;//cast elem 2 as attribute
-            xmlNewProp(node, att->name, att->value);//add property to path node.
+            xmlNewProp(node, (const xmlChar *)att->name, (const xmlChar *)att->value);//add property to path node.
         }
     }
     //CREATE CHILDREN GROUPS OF SVG ELEMENT
+    if (img->groups == NULL) {
+        xmlFreeDoc(xDoc);
+        xmlCleanupParser();
+        return NULL;
+    }
     iter = createIterator(img->groups);
 
     while ((elem = nextElement(&iter)) != NULL) {
         Group* gro = (Group*)elem;
-        node = xmlNewChild(rootNode, NULL, "g", NULL);//create group
-        svgToXmlGroup(node, gro);
+        node = xmlNewChild(rootNode, NULL, (const xmlChar *)"g", NULL);//create group
+
+        if (!svgToXmlGroup(node, gro)) {
+            xmlFreeDoc(xDoc);
+            xmlCleanupParser();
+            return NULL;
+        }
     }
     xmlCleanupParser();
     return xDoc;
 }
 
+//definition of strndup function that is not a part of c99 but is used in my code
+char *strndup2(const char *s, size_t n) {
+    char *p;
+    size_t n1;
+
+    for (n1 = 0; n1 < n && s[n1] != '\0'; n1++)
+        continue;
+    p = malloc(n + 1);
+    if (p != NULL) {
+        memcpy(p, s, n1);
+        p[n1] = '\0';
+    }
+    return p;
+}

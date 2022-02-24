@@ -605,7 +605,6 @@ bool validateSVG(const SVG* img, const char* schemaFile) {
     //RUN HELPER TO CONVERT TO XML TREE
     xmlDocPtr xDoc = NULL;
     xDoc = svgToXml(img);
-
     //THEN RUN VALIDATEXMLTREE
     if (!validateXMLTree(xDoc, schemaFile)) {//if false is returned then not valid xml -> not valid svg
         xmlCleanupParser();
@@ -647,9 +646,9 @@ bool validateSVG(const SVG* img, const char* schemaFile) {
     //Circles
     List* circs = getCircles(img);
     iter = createIterator(circs);
-    while((elem = nextElement(&iter)) != NULL) {//for each rect
+    while((elem = nextElement(&iter)) != NULL) {//for each circ
         Circle* cir = (Circle*)elem;
-        if (cir->r < 0 || cir->otherAttributes == NULL) {//if any attributes of circle break specification
+        if (cir->otherAttributes == NULL || cir->r < 0) {//if any attributes of circle break specification
             return false;
         }
         iter2 = createIterator(cir->otherAttributes);
@@ -665,7 +664,7 @@ bool validateSVG(const SVG* img, const char* schemaFile) {
     //Paths
     List* paths = getPaths(img);
     iter = createIterator(paths);
-    while((elem = nextElement(&iter)) != NULL) {//for each rect
+    while((elem = nextElement(&iter)) != NULL) {//for each path
         Path* pat = (Path*)elem;
         if (pat->data == NULL || pat->otherAttributes == NULL) {//if any attributes of path break specification
             return false;
@@ -706,15 +705,13 @@ bool validateSVG(const SVG* img, const char* schemaFile) {
 //MODULE 2
 bool setAttribute(SVG* img, elementType elemType, int elemIndex, Attribute* newAttribute) {
 
-    if (img == NULL || elemType < 0 || elemType > 4 || elemIndex < 0 || newAttribute == NULL || newAttribute->name == NULL) {
+    if (img == NULL || elemType < 0 || elemType > 4 || newAttribute == NULL || newAttribute->name == NULL) {
         return false;
     }
 
     int i = 0;
     void* elem;
-    void* elem2;
     ListIterator iter;
-    ListIterator iter2;
     char *ptr;
 
     if (elemType == 0) {//SVG_IMG is 0th
@@ -1161,6 +1158,47 @@ char *circListToJSON(const List *list) {
     return str;
 }
 
+char *rectListToJSON(const List *list) {
+    char *str = NULL;
+    char *temp = NULL;
+    int size = 0;
+    if (list == NULL || getLength((List*)list) == 0) {
+        str = calloc(1, sizeof(char)*(2+1));
+        strcpy(str, "[]");
+        return str;
+    }
+    ListIterator iter;
+    void* elem;
+    iter = createIterator((List*)list);
+    while((elem = nextElement(&iter)) != NULL) {
+        Rectangle* rec = (Rectangle*)elem;
+        temp = rectToJSON(rec);
+        size += strlen(temp);
+        free(temp);
+    }
+
+    int num = getLength((List*)list);
+    str = calloc(1, sizeof(char)*(size + 2 + (num-1) + 1));//2 for the 2 brackets, num-1 for each comma, +1 for \0
+
+    ListIterator iter2;
+    void* elem2;
+    iter2 = createIterator((List*)list);
+    elem2 = nextElement(&iter2);
+    strcpy(str, "[");//starts with open bracket
+    for (int i = 0; i < num; i++) {
+        Rectangle* rec = (Rectangle*)elem2;
+        temp = rectToJSON(rec);
+        strcat(str, temp);//add attribute to big str
+        free(temp);
+        if (i != num-1) {//if not last attr in list
+            strcat(str, ",");//add comma
+        }
+        elem2 = nextElement(&iter2);
+    }
+    strcat(str, "]");//end with closed bracket
+    return str;
+}
+
 char *pathListToJSON(const List *list) {
     char *str = NULL;
     char *temp = NULL;
@@ -1275,7 +1313,7 @@ SVG* JSONtoSVG(const char* svgString) {
     char *end = NULL;
     end = desc - 2;//end for title
 
-    char *temp = strndup(title, (end-title));
+    char *temp = strndup2(title, (end-title));
     strcpy(mySVG->title, temp);
     free(temp);
 
@@ -1285,7 +1323,7 @@ SVG* JSONtoSVG(const char* svgString) {
     end -= 2;//go back 2 to get to actual end
     desc += 9;//get to srat of description
 
-    temp = strndup(desc, (end-desc));
+    temp = strndup2(desc, (end-desc));
     strcpy(mySVG->description, temp);
     free(temp);
 
@@ -1310,7 +1348,7 @@ Rectangle* JSONtoRect(const char* svgString) {
     char *y = NULL;
     y = strstr(svgString, "\"y\":");
     end = y - 1;//end for x
-    temp = strndup(x, (end-x));//get x value
+    temp = strndup2(x, (end-x));//get x value
     newRectangle->x = atof(temp);//conversion
     free(temp);
     y += 4;//get to start of y
@@ -1318,7 +1356,7 @@ Rectangle* JSONtoRect(const char* svgString) {
     char *w = NULL;
     w = strstr(svgString, "\"w\":");
     end = w - 1;//end for y
-    temp = strndup(y, (end-y));//get y value
+    temp = strndup2(y, (end-y));//get y value
     newRectangle->y = atof(temp);//conversion
     free(temp);
     w += 4;//get to start of w
@@ -1326,7 +1364,7 @@ Rectangle* JSONtoRect(const char* svgString) {
     char *h = NULL;
     h = strstr(svgString, "\"h\":");
     end = h - 1;//end for w
-    temp = strndup(w, (end-w));//get w value
+    temp = strndup2(w, (end-w));//get w value
     newRectangle->width = atof(temp);//conversion
     free(temp);
     h += 4;//get to start of h
@@ -1334,7 +1372,7 @@ Rectangle* JSONtoRect(const char* svgString) {
     char *units = NULL;
     units = strstr(svgString, "\"units\":");
     end = units - 1;//end for h
-    temp = strndup(h, (end-h));//get h value
+    temp = strndup2(h, (end-h));//get h value
     newRectangle->height = atof(temp);//conversion
     free(temp);
     units += 9;//get to start of units
@@ -1344,7 +1382,7 @@ Rectangle* JSONtoRect(const char* svgString) {
     }
     end -= 2;//go back 2 to get to actual end
 
-    temp = strndup(units, (end-units));
+    temp = strndup2(units, (end-units));
     strcpy(newRectangle->units, temp);
     free(temp);
 
@@ -1370,7 +1408,7 @@ Circle* JSONtoCircle(const char* svgString) {
     char *cy = NULL;
     cy = strstr(svgString, "\"cy\":");
     end = cy - 1;//end for cx
-    temp = strndup(cx, (end-cx));//get cx value
+    temp = strndup2(cx, (end-cx));//get cx value
     newCircle->cx = atof(temp);//conversion
     free(temp);
     cy += 5;//get to start of cy
@@ -1378,7 +1416,7 @@ Circle* JSONtoCircle(const char* svgString) {
     char *r = NULL;
     r = strstr(svgString, "\"r\":");
     end = r - 1;//end for cy
-    temp = strndup(cy, (end-cy));//get cy value
+    temp = strndup2(cy, (end-cy));//get cy value
     newCircle->cy = atof(temp);//conversion
     free(temp);
     r += 4;//get to start of r
@@ -1386,7 +1424,7 @@ Circle* JSONtoCircle(const char* svgString) {
     char *units = NULL;
     units = strstr(svgString, "\"units\":");
     end = units - 1;//end for r
-    temp = strndup(r, (end-r));//get r value
+    temp = strndup2(r, (end-r));//get r value
     newCircle->r = atof(temp);//conversion
     free(temp);
     units += 9;//get to start of units
@@ -1396,7 +1434,7 @@ Circle* JSONtoCircle(const char* svgString) {
     }
     end -= 2;//go back 2 to get to actual end
 
-    temp = strndup(units, (end-units));
+    temp = strndup2(units, (end-units));
     strcpy(newCircle->units, temp);
     free(temp);
 
