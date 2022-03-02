@@ -760,19 +760,15 @@ bool setAttribute(SVG* img, elementType elemType, int elemIndex, Attribute* newA
         Circle* cir = (Circle*)elem;
 
         if (strcmp("cx", (const char*)newAttribute->name) == 0) {
-            //cir->cx = atof((const char*)newAttribute->value); //string to float value
             cir->cx = strtof((const char*)newAttribute->value, &ptr);
-            strcpy(cir->units, ptr);
             deleteAttribute(newAttribute);//delete newAttribute
         }
         else if (strcmp("cy", (const char*)newAttribute->name) == 0) {
             cir->cy = strtof((const char*)newAttribute->value, &ptr);
-            strcpy(cir->units, ptr);
             deleteAttribute(newAttribute);//delete newAttribute
         }
         else if (strcmp("r", (const char*)newAttribute->name) == 0) {
             cir->r = strtof((const char*)newAttribute->value, &ptr);
-            strcpy(cir->units, ptr);
             deleteAttribute(newAttribute);//delete newAttribute
         }
         else {//otherAttributes list
@@ -815,22 +811,18 @@ bool setAttribute(SVG* img, elementType elemType, int elemIndex, Attribute* newA
 
         if (strcmp("x", (const char*)newAttribute->name) == 0) {
             rec->x = strtof((const char*)newAttribute->value, &ptr);
-            strcpy(rec->units, ptr);
             deleteAttribute(newAttribute);//delete newAttribute
         }
         else if (strcmp("y", (const char*)newAttribute->name) == 0) {
             rec->y = strtof((const char*)newAttribute->value, &ptr);//string to float value
-            strcpy(rec->units, ptr); 
             deleteAttribute(newAttribute);//delete newAttribute
         }
         else if (strcmp("width", (const char*)newAttribute->name) == 0) {
             rec->width = strtof((const char*)newAttribute->value, &ptr);//string to float value
-            strcpy(rec->units, ptr); 
             deleteAttribute(newAttribute);//delete newAttribute
         }
         else if (strcmp("height", (const char*)newAttribute->name) == 0) {
             rec->height = strtof((const char*)newAttribute->value, &ptr);//string to float value
-            strcpy(rec->units, ptr); 
             deleteAttribute(newAttribute);//delete newAttribute
         }
         else {//otherAttributes list
