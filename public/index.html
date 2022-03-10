@@ -1,0 +1,187 @@
+<!DOCTYPE html><!--Port num 31470 aND 33692-->
+<html lang="en">
+<head>
+    <title>SVG Image Viewer</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="CHANGE ME">
+    <meta name="keywords" content="CHANGE ME">
+    <meta name="author" content="Skylar Mawle">
+    <!-- Load jquery, bootstrap -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <!-- Custom CSS End -->
+</head>
+<body>
+    <h3>SVG Image Viewer</h3>
+    Perhaps I should write a brief description describing what this is all about right here.<br>
+    <a href="rects.svg" download>rects.svg</a>
+    <p></p>
+    <div class="filelogTable">
+      <h4 class="panelHeader">File Log Panel</h4>
+      <hr>
+      <table id="table" border="1">
+        <tr id="fixedHeader" class="tableHeader"><!--HEADER ROW OF FILE LOG PANEL-->
+          <th>Image<br>(click to download)</th>
+          <th>File name<br>(click to download)</th>
+          <th>File size</th>
+          <th>Number of Rectangles</th>
+          <th>Number of circles</th>
+          <th>Number of paths</th>
+          <th>Number of groups</th>
+        </tr>
+        <tr class="blankRow"><!-- DEFAULT NO FILES-->
+            <td>No files</td>
+        </tr>
+      </table>
+      <form ref='uploadForm' id='uploadForm' action='/upload' method='post' encType="multipart/form-data">
+        <div class="form-group">
+      	  <input type="file" name="uploadFile" class="btn btn-secondary">
+      	  <input type='submit' value='Upload' class="btn btn-secondary">
+        </div>
+      </form>
+    </div>
+    <div class="viewLog">
+        <h5 class="panelHeader">SVG View Log</h5>
+        <hr>
+        <div class="dropdown">
+          <button class="dropbtn">SVGs</button>
+          <div class="dropdown-content">
+            <a id="someLink" href="#">Link 1</a>
+            <a href="#">Link 2</a>
+            <a href="#">Link 3</a>
+          </div>
+        </div>
+        <table id="viewLogTable">
+          <tr><!--IMAGE ROW-->
+            <img id="imgVL" src="temp/quad01.svg">
+          </tr>
+          <tr><!--Row for title and desc-->
+            <table id="titleTable" border="1">
+              <tr class="tableHeader"><!--TITLE/DESCRIPTION HEADERS ROW-->
+                <th>Title</th>
+                <th>Description</th>
+              </tr>
+              <tr><!-- title and description-->
+                <td id="titleCell" contenteditable="true"></td>
+                <td id="descCell" contenteditable="true"></td>
+              </tr>
+            </table>
+          </tr>
+          <tr><!--Components row-->
+            <div class="componentsParent">
+                <table id="componentTable" border="1"><!--Components table-->
+                    <tr id="componentH" class="tableHeader"><!--HEADER ROW-->
+                      <th>Component (Click to edit)</th>
+                      <th>Summary</th>
+                      <th>Other attributes</th>
+                    </tr>
+                    <tbody id="mytbody">
+                        <!--WILL ADD n ROWS here WITH js function when actually acquired svg-->
+                    </tbody>
+                </table>
+                <table id="OAList" border="1">
+                    <tr id="OAListHeader" class="tableHeader"><!--HEADER ROW-->
+                      <th>Other Attributes List</th>
+                    </tr>
+                    <tbody id="mytbody2">
+                        <tr><!-- ONE ROW PER ATTRIBUTE IN OTHER ATTRIBUTES LIST-->
+                            <td>asdasd</td>
+                        </tr>
+                        <tr>
+                            <td>asdasd</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+          </tr>
+        </table>
+        <!--FORMS FOR EDITING COMPONENTS-->
+        <div class="editParent">
+            <div id="editRect" class="edit">
+                <form>
+                    <h10 id="editRectHeader" class="editHeader"></h10><br>
+                    <label for="editX">x value:</label><br>
+                    <input type="text" id="editX" name="editX"><br>
+                    <label for="editY">y value:</label><br>
+                    <input type="text" id="editY" name="editY"><br>
+                    <label for="editW">width value:</label><br>
+                    <input type="text" id="editW" name="editW"><br>
+                    <label for="editH">height value:</label><br>
+                    <input type="text" id="editH" name="editH"><br>
+                    <label for="editRectUnits">units:</label><br>
+                    <input type="text" id="editRectUnits" name="editRectUnits"><br>
+                    <label for="newRectAttName">New Attribute Name:</label><br>
+                    <input type="text" id="newRectAttName" name="newRectAttName"><br>
+                    <label for="newRectAttVal">New Attribute Value:</label><br>
+                    <input type="text" id="newRectAttVal" name="newRectAttVal"><br>
+                </form>
+                <button id="submitRect" class="submitButton">Submit</button>
+            </div>
+            <div id="editCirc" class="edit">
+                <form>
+                    <h7 id="editCircHeader" class="editHeader"></h7><br>
+                    <label for="editCX">cx value:</label><br>
+                    <input type="text" id="editCX" name="editCX"><br>
+                    <label for="editCY">cy value:</label><br>
+                    <input type="text" id="editCY" name="editCY"><br>
+                    <label for="editR">radius value:</label><br>
+                    <input type="text" id="editR" name="editR"><br>
+                    <label for="editCircUnits">units:</label><br>
+                    <input type="text" id="editCircUnits" name="editCircUnits"><br>
+                    <label for="newCircAttName">New Attribute Name:</label><br>
+                    <input type="text" id="newCircAttName" name="newCircAttName"><br>
+                    <label for="newCircAttVal">New Attribute Value:</label><br>
+                    <input type="text" id="newCircAttVal" name="newCircAttVal"><br>
+                </form>
+                <button id="submitCirc" class="submitButton">Submit</button>
+            </div>
+            <div id="editPath" class="edit">
+                <form>
+                    <h8 id="editPathHeader" class="editHeader"></h8><br>
+                    <label for="editData">data:</label><br>
+                    <input type="text" id="editData" name="editData"><br>
+                    <label for="newPathAttName">New Attribute Name:</label><br>
+                    <input type="text" id="newPathAttName" name="newPathAttName"><br>
+                    <label for="newPathAttVal">New Attribute Value:</label><br>
+                    <input type="text" id="newPathAttVal" name="newPathAttVal"><br>
+                </form>
+                <button id="submitPath" class="submitButton">Submit</button>
+            </div>
+            <div id="editGroup" class="edit">
+                <form><!--SHOULD YOU BE ABLE TO DO THIS???-->
+                    <h9 id="editGroupHeader" class="editHeader"></h9><br>
+                    <label for="editNumChildren">number of children:</label><br>
+                    <input type="text" id="editNumChildren" name="editNumChildren"><br>
+                    <label for="newGroupAttName">New Attribute Name:</label><br>
+                    <input type="text" id="newGroupAttName" name="newGroupAttName"><br>
+                    <label for="newGroupAttVal">New Attribute Value:</label><br>
+                    <input type="text" id="newGroupAttVal" name="newGroupAttVal"><br>
+                </form>
+                <button id="submitGroup" class="submitButton">Submit</button>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <div id="blah">I am blah</div>
+    <hr>
+    <form ref='someform' id='someform'>
+          <div class="form-group">
+                <label for="entryBox">Last Name</label>
+                <input type="text" class="form-control" id="entryBox" value="Value" placeholder="Placeholder">
+          </div>
+        <div class="form-group">
+            <input type='submit' class="btn btn-secondary">
+        </div>
+    </form>
+
+    <!-- Leave me at the bottom of body -->
+    <script src="/index.js"></script>
+</body>
+</html>
+
+
