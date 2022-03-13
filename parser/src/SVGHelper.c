@@ -570,3 +570,130 @@ char *strndup2(const char *s, size_t n) {
     }
     return p;
 }
+
+
+//NEW FOR A3:
+
+char* createSVGtoJSON(const char* fileName, const char* schemaFile) {
+    SVG* svg = createValidSVG(fileName, schemaFile);
+    char* str = SVGtoJSON(svg);
+    deleteSVG(svg);
+    return str;
+}
+
+char* getTitleSVG(const char* fileName, const char* schemaFile) {
+    SVG* svg = createValidSVG(fileName, schemaFile);
+    if (strlen(svg->title) < 1) {
+        return "";
+    }
+    char* str = svg->title;
+    deleteSVG(svg);
+    return str;
+}
+
+char* getDescSVG(const char* fileName, const char* schemaFile) {
+    SVG* svg = createValidSVG(fileName, schemaFile);
+    if (strlen(svg->description) < 1) {
+        return "";
+    }
+    char* str = svg->description;
+    deleteSVG(svg);
+    return str;
+}
+
+char* getRectsSVG(const char* fileName, const char* schemaFile) {
+    SVG* svg = createValidSVG(fileName, schemaFile);
+    List* rects = getRects(svg);
+    char *str = rectListToJSON(rects);
+    freeList(rects);
+    deleteSVG(svg);
+    return str;
+}
+
+char* getCircsSVG(const char* fileName, const char* schemaFile) {
+    SVG* svg = createValidSVG(fileName, schemaFile);
+    List* circs = getCircles(svg);
+    char *str = circListToJSON(circs);
+    freeList(circs);
+    deleteSVG(svg);
+    return str;
+}
+
+char* getPathsSVG(const char* fileName, const char* schemaFile) {
+    SVG* svg = createValidSVG(fileName, schemaFile);
+    List* paths = getPaths(svg);
+    char *str = pathListToJSON(paths);
+    freeList(paths);
+    deleteSVG(svg);
+    return str;
+}
+
+char* getGroupsSVG(const char* fileName, const char* schemaFile) {
+    SVG* svg = createValidSVG(fileName, schemaFile);
+    List* groups = getGroups(svg);
+    char *str = groupListToJSON(groups);
+    freeList(groups);
+    deleteSVG(svg);
+    return str;
+}
+
+char* getOtherAttributesJSON(const char* fileName, const char* schemaFile, int type, int index) {
+
+    int i = 0;
+    char* str;
+    SVG* svg = createValidSVG(fileName, schemaFile);
+
+    if (type == 0) {//svg_img
+        str = attrListToJSON(svg->otherAttributes);
+    }
+
+    if (type == 1) {//circles
+        List* circs = getCircles(svg);
+        ListIterator iter = createIterator(circs);
+        while (i < index) {//iterate to proper component
+            nextElement(&iter);
+            i++;
+        }
+        Circle* circ = (Circle*)iter.current->data;
+        str = attrListToJSON(circ->otherAttributes);
+        freeList(circs);
+    }
+
+    if (type == 2) {//rectangles
+        List* rects = getRects(svg);
+        ListIterator iter = createIterator(rects);
+        while (i < index) {//iterate to proper component
+            nextElement(&iter);
+            i++;
+        }
+        Rectangle* rect = (Rectangle*)iter.current->data;
+        str = attrListToJSON(rect->otherAttributes);
+        freeList(rects);
+    }
+
+    if (type == 3) {//paths
+        List* paths = getPaths(svg);
+        ListIterator iter = createIterator(paths);
+        while (i < index) {//iterate to proper component
+            nextElement(&iter);
+            i++;
+        }
+        Path* path = (Path*)iter.current->data;
+        str = attrListToJSON(path->otherAttributes);
+        freeList(paths);
+    }
+
+    if (type == 4) {//groups
+        List* groups = getGroups(svg);
+        ListIterator iter = createIterator(groups);
+        while (i < index) {//iterate to proper component
+            nextElement(&iter);
+            i++;
+        }
+        Group* group = (Group*)iter.current->data;
+        str = attrListToJSON(group->otherAttributes);
+        freeList(groups);
+    }
+    deleteSVG(svg);
+    return str;
+}

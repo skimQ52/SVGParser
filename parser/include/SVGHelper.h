@@ -38,3 +38,21 @@ bool svgToXmlGroup(xmlNodePtr rootNode, Group* gro);
 xmlDocPtr svgToXml(const SVG *img);
 
 char *strndup2(const char *s, size_t n);
+
+//+++++++++++++++++++++++++++++++++++++++++++++ASSIGNMENT 3++++++++++++++++++++++++++++++++++++++++++//
+char* createSVGtoJSON(const char* fileName, const char* schemaFile);
+
+char* getTitleSVG(const char* fileName, const char* schemaFile);
+
+char* getDescSVG(const char* fileName, const char* schemaFile);
+
+char* getRectsSVG(const char* fileName, const char* schemaFile);
+
+char* getCircsSVG(const char* fileName, const char* schemaFile);
+
+char* getPathsSVG(const char* fileName, const char* schemaFile);
+
+char* getGroupsSVG(const char* fileName, const char* schemaFile);
+
+char* getOtherAttributesJSON(const char* fileName, const char* schemaFile, int type, int index);
+

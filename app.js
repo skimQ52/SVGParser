@@ -51,17 +51,39 @@ app.get('/index.js',function(req,res){
     'getDesc' : [ 'string', [] ]
   });*/
 
-  /*
   
 const lib = ffi.DynamicLibrary('libsvgparser.so');
-const funcPtr = lib.get('createValidSVG');
-const createValidSVG = ffi.ForeignFunction(funcPtr, 'Object *', ['CString', 'CString']);
 
-const svg = createValidSVG('file.svg', 'svg.xsd');//calling the createValidSVG FUnction!
+//createValidSVG
+//const funcPtr = lib.get('createValidSVG');
+//const createValidSVG = ffi.ForeignFunction(funcPtr, 'Object *', ['CString', 'CString']);
 
-place shared lib into default lib (SAME DIRECTORY AS APP.js) OR Modify app.js so it looks for shared lib in parser/bin
-*/
+const funcPtr = lib.get('createSVGtoJSON');
+const createSVGtoJSON = ffi.ForeignFunction(funcPtr, 'String', ['CString', 'CString']);
 
+//for viewlog
+const funcPtr2 = lib.get('getTitleSVG');
+const getTitleSVG = ffi.ForeignFunction(funcPtr2, 'String', ['CString', 'CString']);
+
+const funcPtr3 = lib.get('getDescSVG');
+const getDescSVG = ffi.ForeignFunction(funcPtr3, 'String', ['CString', 'CString']);
+
+const funcPtr4 = lib.get('getRectsSVG');
+const getRectsSVG = ffi.ForeignFunction(funcPtr4, 'String', ['CString', 'CString']);
+
+const funcPtr5 = lib.get('getCircsSVG');
+const getCircsSVG = ffi.ForeignFunction(funcPtr5, 'String', ['CString', 'CString']);
+
+const funcPtr6 = lib.get('getPathsSVG');
+const getPathsSVG = ffi.ForeignFunction(funcPtr6, 'String', ['CString', 'CString']);
+
+const funcPtr7 = lib.get('getGroupsSVG');
+const getGroupsSVG = ffi.ForeignFunction(funcPtr7, 'String', ['CString', 'CString']);
+
+const funcPtr8 = lib.get('getOtherAttributesJSON');
+const getOtherAttributesJSON = ffi.ForeignFunction(funcPtr8, 'String', ['CString', 'CString', 'int', 'int']);
+
+//const svg = createValidSVG('file.svg', 'svg.xsd');//calling the createValidSVG FUnction!
 
 //Respond to POST requests that upload files to uploads/ directory
 app.post('/upload', function(req, res) {
@@ -82,15 +104,10 @@ app.post('/upload', function(req, res) {
 });
 
 //Respond to GET requests for files in the uploads/ directory
-app.get('/uploads/:name', function(req , res){
+app.get('/uploads/:name', function(req , res){;
   fs.stat('uploads/' + req.params.name, function(err, stat) {
     if (err == null) {
-        console.log("downloaded\n");//for testing
-        //Im thinking here i use SVGTOJSON then return the JSON to the client side
-        //res.sendFile(path.join(__dirname+'/uploads/' + req.params.name)); //ASK ANTHONY WHAT THIS DOES
-        res.send({//ADDED BY ME
-            retu: "filename is: "+req.params.name
-        });
+        res.sendFile(path.join(__dirname+'/uploads/' + req.params.name));
     } 
     else {
         console.log('Error in file downloading route: '+err);
@@ -100,6 +117,74 @@ app.get('/uploads/:name', function(req , res){
 });
 
 //******************** Your code goes here ******************** 
+
+//READING DIRECTORY /uploads FOR ALL UPLOADED SVG FILES!
+app.get('/files', function(req, res) {
+    const uploadsDir = path.join(__dirname, 'uploads');
+    var fileList = [];
+    fs.readdir(uploadsDir, function (err, files) {
+
+        if (err) {
+            return console.log("cant read directory: "+err);
+        }
+        let i = 0;
+        files.forEach(function(file) {
+            if (file.split('.').pop() == "svg") {//if svg file
+                fileList.push(file);
+                //console.log('files: '+fileList[i]);
+                i++;
+            }
+        });
+        let str = JSON.stringify(fileList);
+        //console.log("pepe"+str);
+        res.send({
+            files: str
+        });
+    });
+});
+
+//USED FOR SVG FILE LOG PANEL, ON ONLOAD right after /files endpoint ^^
+app.get('/onload', function(req, res) {
+    //console.log('uploads/'+req.query.fileSent);
+    //console.log(req.query.data1);
+    let svgJSON = createSVGtoJSON('uploads/' + req.query.fileSent, 'svg.xsd');
+    //console.log(req.query.fileSent + ": " +svgJSON);
+    let svg = JSON.parse(svgJSON);
+    res.send({
+        retu: svg
+    });
+});
+
+//used when dropdown changed
+app.get('/viewlog', function(req, res) {
+    let filepath = 'uploads/' + req.query.file;
+
+    let titl = getTitleSVG(filepath, 'svg.xsd');
+    let desc = getDescSVG(filepath, 'svg.xsd');
+    let recs = getRectsSVG(filepath, 'svg.xsd');
+    let cirs = getCircsSVG(filepath, 'svg.xsd');
+    let pats = getPathsSVG(filepath, 'svg.xsd');
+    let gros = getGroupsSVG(filepath, 'svg.xsd');
+
+    res.send({
+        title: titl,
+        description: desc,
+        rectangles: recs,
+        circles: cirs,
+        paths: pats,
+        groups: gros
+    });
+});
+
+app.get('/attributes', function(req, res) {
+    let filepath = 'uploads/' + req.query.file;
+    //console.log(filepath+req.query.type+req.query.index);
+    let atts = getOtherAttributesJSON(filepath, 'svg.xsd', req.query.type, req.query.index);
+    //console.log(atts);
+    res.send({
+        str: atts
+    });
+});
 
 //Sample endpoint
 app.get('/endpoint1', function(req , res){
@@ -111,17 +196,6 @@ app.get('/endpoint1', function(req , res){
     }
   );
 });
-
-//FOR GETTING SVGS! --> EVENTUALLY, BUILD FROM HERE THO!
-app.get('/uploads', function(req , res){
-    let retStr = req.query.name + " " + req.query.value;
-   
-    res.send(
-      {
-        retu: retStr//HERE I DO SVGTOJSON OR OTHER WAY BRAIN NOP THINK
-      }
-    );
-  });
 
 app.listen(portNum);
 console.log('Running app at localhost: ' + portNum);

@@ -20,45 +20,40 @@
     <h3>SVG Image Viewer</h3>
     Perhaps I should write a brief description describing what this is all about right here.<br>
     <a href="rects.svg" download>rects.svg</a>
-    <p></p>
+
     <div class="filelogTable">
       <h4 class="panelHeader">File Log Panel</h4>
       <hr>
       <table id="table" border="1">
         <tr id="fixedHeader" class="tableHeader"><!--HEADER ROW OF FILE LOG PANEL-->
-          <th>Image<br>(click to download)</th>
-          <th>File name<br>(click to download)</th>
-          <th>File size</th>
-          <th>Number of Rectangles</th>
-          <th>Number of circles</th>
-          <th>Number of paths</th>
-          <th>Number of groups</th>
-        </tr>
-        <tr class="blankRow"><!-- DEFAULT NO FILES-->
-            <td>No files</td>
+          <th class="imgCell">Image<br>(click to download)</th>
+          <th class="fixedHeader">File name<br>(click to download)</th>
+          <th class="fixedHeader">File size</th>
+          <th class="fixedHeader">Number of Rectangles</th>
+          <th class="fixedHeader">Number of circles</th>
+          <th class="fixedHeader">Number of paths</th>
+          <th class="fixedHeader">Number of groups</th>
         </tr>
       </table>
-      <form ref='uploadForm' id='uploadForm' action='/upload' method='post' encType="multipart/form-data">
+      <form ref='uploadForm' id='uploadForm' action='/upload' method='post' encType="multipart/form-data" onsubmit="uploadedSVG()">
         <div class="form-group">
-      	  <input type="file" name="uploadFile" class="btn btn-secondary">
-      	  <input type='submit' value='Upload' class="btn btn-secondary">
+      	  <input id="chooseFile" type="file" name="uploadFile" class="btn btn-secondary">
+      	  <input id="submitUpload" type='submit' value='Upload' class="btn btn-secondary">
         </div>
       </form>
     </div>
     <div class="viewLog">
+        <p id="yo"></p><!--for testing-->
         <h5 class="panelHeader">SVG View Log</h5>
         <hr>
         <div class="dropdown">
-          <button class="dropbtn">SVGs</button>
-          <div class="dropdown-content">
-            <a id="someLink" href="#">Link 1</a>
-            <a href="#">Link 2</a>
-            <a href="#">Link 3</a>
-          </div>
+            <select class="dropbtn" name="drop" id="drop">
+                <option value="def" class="dropdown-content" id="def">Select an SVG</option><!--Default option-->
+            </select>
         </div>
         <table id="viewLogTable">
           <tr><!--IMAGE ROW-->
-            <img id="imgVL" src="temp/quad01.svg">
+            <img id="imgVL" src="temp/quad01.svg" width="800px">
           </tr>
           <tr><!--Row for title and desc-->
             <table id="titleTable" border="1">
@@ -89,12 +84,7 @@
                       <th>Other Attributes List</th>
                     </tr>
                     <tbody id="mytbody2">
-                        <tr><!-- ONE ROW PER ATTRIBUTE IN OTHER ATTRIBUTES LIST-->
-                            <td>asdasd</td>
-                        </tr>
-                        <tr>
-                            <td>asdasd</td>
-                        </tr>
+                        
                     </tbody>
                 </table>
             </div>
@@ -103,7 +93,7 @@
         <!--FORMS FOR EDITING COMPONENTS-->
         <div class="editParent">
             <div id="editRect" class="edit">
-                <form>
+                <form id="editRectForm">
                     <h10 id="editRectHeader" class="editHeader"></h10><br>
                     <label for="editX">x value:</label><br>
                     <input type="text" id="editX" name="editX"><br>
@@ -115,6 +105,9 @@
                     <input type="text" id="editH" name="editH"><br>
                     <label for="editRectUnits">units:</label><br>
                     <input type="text" id="editRectUnits" name="editRectUnits"><br>
+                    <div id="editRectOA">
+
+                    </div>
                     <label for="newRectAttName">New Attribute Name:</label><br>
                     <input type="text" id="newRectAttName" name="newRectAttName"><br>
                     <label for="newRectAttVal">New Attribute Value:</label><br>
@@ -123,7 +116,7 @@
                 <button id="submitRect" class="submitButton">Submit</button>
             </div>
             <div id="editCirc" class="edit">
-                <form>
+                <form id="editCircForm">
                     <h7 id="editCircHeader" class="editHeader"></h7><br>
                     <label for="editCX">cx value:</label><br>
                     <input type="text" id="editCX" name="editCX"><br>
@@ -133,6 +126,9 @@
                     <input type="text" id="editR" name="editR"><br>
                     <label for="editCircUnits">units:</label><br>
                     <input type="text" id="editCircUnits" name="editCircUnits"><br>
+                    <div id="editCircOA">
+
+                    </div>
                     <label for="newCircAttName">New Attribute Name:</label><br>
                     <input type="text" id="newCircAttName" name="newCircAttName"><br>
                     <label for="newCircAttVal">New Attribute Value:</label><br>
@@ -141,10 +137,13 @@
                 <button id="submitCirc" class="submitButton">Submit</button>
             </div>
             <div id="editPath" class="edit">
-                <form>
+                <form id="editPathForm">
                     <h8 id="editPathHeader" class="editHeader"></h8><br>
                     <label for="editData">data:</label><br>
                     <input type="text" id="editData" name="editData"><br>
+                    <div id="editPathOA">
+
+                    </div>
                     <label for="newPathAttName">New Attribute Name:</label><br>
                     <input type="text" id="newPathAttName" name="newPathAttName"><br>
                     <label for="newPathAttVal">New Attribute Value:</label><br>
@@ -153,10 +152,13 @@
                 <button id="submitPath" class="submitButton">Submit</button>
             </div>
             <div id="editGroup" class="edit">
-                <form><!--SHOULD YOU BE ABLE TO DO THIS???-->
+                <form id="editGroupForm">
                     <h9 id="editGroupHeader" class="editHeader"></h9><br>
-                    <label for="editNumChildren">number of children:</label><br>
+                    <label for="editNumChildren">number of children:</label><br><!--SHOULD YOU BE ABLE TO DO THIS???-->
                     <input type="text" id="editNumChildren" name="editNumChildren"><br>
+                    <div id="editGroupOA">
+
+                    </div>
                     <label for="newGroupAttName">New Attribute Name:</label><br>
                     <input type="text" id="newGroupAttName" name="newGroupAttName"><br>
                     <label for="newGroupAttVal">New Attribute Value:</label><br>

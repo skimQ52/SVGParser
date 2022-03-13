@@ -69,10 +69,29 @@ table {
     overflow: auto;
 }
 #table {
-    display:block;
+    overflow: auto;
+    max-width: 100%;
+    max-height: 400px;
+    display: flex;
+    flex-direction: row;
+    border-collapse: collapse;
+    align-items: stretch;
 }
-#fixedHeader {
-    table-layout: fixed;
+#table tr {
+    width: 100%;
+}
+#table td {
+    min-width: 40px;
+}
+#table td:last-child {
+    align-items: stretch;
+}
+.fixedHeader {
+    min-width: 40px;
+    min-height: 70px;
+}
+.imgCell {
+    width: 200px !important;
 }
 .imgCell:hover {
     cursor:pointer;
@@ -93,6 +112,12 @@ table td:hover {
 
 #uploadForm {
     padding: 40px;
+}
+#a1 {
+    font-size: 18px;
+}
+#a1:hover {
+    font-weight: bold;
 }
 
 
@@ -129,14 +154,6 @@ table td:hover {
     height: 165px !important;
     border-width: 1px;
 }
-/*.oaPopup {
-    position: absolute;
-    display:none;
-    width: 150px;
-    height: 100%;
-    border: solid red 3px;
-    background-color: #3801ff;
-}*/
 
 /*FORMS AND EDIT BUTTONS*/
 
@@ -187,32 +204,8 @@ table td:hover {
     padding: 10px 50px;
     font-size: 16px;
     border: none;
-} 
-
-.dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: #f1f1f1;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 1;
 }
-  
-.dropdown-content a {
-    color: black;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-}
-  
-.dropdown-content a:hover {
-    background-color: rgb(150, 0, 0);
-}
-  
-.dropdown:hover .dropdown-content {
-    display: block;
-}
-  
-.dropdown:hover .dropbtn {
-    background-color: #4a3e8e;
+.dropbtn:hover {
+    box-shadow: 0px 8px 30px 0px rgba(0,0,0,0.2);
+    z-index: 2;
 }
