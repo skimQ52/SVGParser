@@ -33,6 +33,10 @@ jQuery(document).ready(function() {
 
     //set change function for dropdown menu
     $('#drop').change(function(e){
+        $('#editRect').slideUp();
+        $('#editCirc').slideUp();
+        $('#editPath').slideUp();
+        $('#editGroup').slideUp();
         let dropdown = document.getElementById("drop");
         let filename = dropdown.options[dropdown.selectedIndex].text;//file name selected from dropdown
         if (filename != "Select an SVG") {
@@ -126,8 +130,26 @@ jQuery(document).ready(function() {
     });
 });
 
-function setSizeAtt(attributes) {
-    return attributes.length;
+function setAttAjax(svgName, type, index, attName, attValue) {
+    $.ajax({
+        type: 'get',
+        dataType: 'json',
+        url: '/changeatt',
+        data: {
+            file: svgName,
+            type: type,
+            index: index,
+            attName: attName,
+            attValue: attValue
+        },
+        success: function (data) {
+            
+        },
+        fail: function(error) {
+            console.log(error);
+            alert(error);
+        }
+    });
 }
 
 //function for onload getting all svgs into svg File Log Panel using addSVGToFileLog
@@ -216,6 +238,7 @@ function addSVGToFileLog(svg, svgName) {
     cell6.appendChild(groups);
 }
 
+
 function addSVGToViewLog(svg) {
     
     let viewLogTable = document.getElementById('viewLogTable');
@@ -224,9 +247,6 @@ function addSVGToViewLog(svg) {
     document.getElementById("titleCell").maxLength = 256;
     document.getElementById("descCell").innerHTML = svg.description;
     document.getElementById("descCell").maxLength = 256;
-    //let componentTable = document.getElementById('componentTable');
-    //$("#componentTable tbody tr").remove();
-
 
     //COMPONENTS
     let tbody = document.getElementById('mytbody');
@@ -235,6 +255,11 @@ function addSVGToViewLog(svg) {
 
     for(let i = 0; i < svg.rectangles.length; i++) {//RECTS
 
+        let xDef = svg.rectangles[i].x;
+        let yDef = svg.rectangles[i].y;
+        let wDef = svg.rectangles[i].w;
+        let hDef = svg.rectangles[i].h;
+        let unitsDef = svg.rectangles[i].units;
         let attributes;
         let newRow = tbody.insertRow(-1);
 
@@ -267,47 +292,195 @@ function addSVGToViewLog(svg) {
                 alert(error);
             }
         });
+        
+        $.ajax({
+            type: 'get',
+            dataType: 'json',
+            url: '/immediate',
+            data: {
+                file: svg.name,
+                type: 2,
+                index: i
+            },
+            success: function (data) {
+                if (data.truth) {
+                    //if immediate child
+                    $('#'+cell0.id).click(function(e) {
 
-        $('#'+cell0.id).click(function(e) {
+                        tbody2.innerHTML = '';//empty tbody2 first
+                        for (let j = 0; j < attributes.length; j++) {
+                            let row = tbody2.insertRow(-1);
+                            let cell = row.insertCell(0);
+                            cell.innerHTML = "Name: "+attributes[j].name+" Value: "+attributes[j].value;
+                        }
 
-            document.getElementById('editRectHeader').innerHTML = "Edit Rect " + (i+1);
-            //default to current values
-            document.getElementById('editX').value = svg.rectangles[i].x;
-            document.getElementById('editY').value = svg.rectangles[i].y;
-            document.getElementById('editW').value = svg.rectangles[i].w;
-            document.getElementById('editH').value = svg.rectangles[i].h;
-            document.getElementById('editRectUnits').value = svg.rectangles[i].units;
+                        //ADD EACH BUTTON PER FORM, BUT FIRST DELETE CURRENT FORM innerHTMl= ""
+                        document.getElementById('editRectHeader').innerHTML = "Edit Rect " + (i+1);
 
-            tbody2.innerHTML = '';//empty tbody2 first
-            for (let j = 0; j < attributes.length; j++) {
-                let row = tbody2.insertRow(-1);
-                let cell = row.insertCell(0);
-                cell.innerHTML = "Name: "+attributes[j].name+" Value: "+attributes[j].value;
+                        let editForm = document.getElementById('editRectForm');
+                        editForm.innerHTML = "";
+                        let buttons = document.getElementById('editRect').querySelectorAll('.submitButton');
+                        buttons.forEach(button => {
+                            button.remove();
+                        });
+
+                        let editX = document.createElement('input');
+                        editX.type = 'text';
+                        editX.value = svg.rectangles[i].x;
+                        editX.id = 'editX'+(i+1);
+                        editX.name = 'editX'+(i+1);
+                        let editXLabel = document.createElement('label');
+                        editXLabel.for = 'editX'+(i+1);
+                        editXLabel.innerHTML = "x: ";
+                        editForm.appendChild(editXLabel);
+                        editForm.appendChild(document.createElement('br'));
+                        editForm.appendChild(editX);
+                        editForm.appendChild(document.createElement('br'));
+
+                        let editY = document.createElement('input');
+                        editY.value = svg.rectangles[i].y;
+                        editY.id = 'editY'+(i+1);
+                        editY.name = 'editY'+(i+1);
+                        let editYLabel = document.createElement('label');
+                        editYLabel.for = 'editY'+(i+1);
+                        editYLabel.innerHTML = "y: ";
+                        editForm.appendChild(editYLabel);
+                        editForm.appendChild(document.createElement('br'));
+                        editForm.appendChild(editY);
+                        editForm.appendChild(document.createElement('br'));
+
+                        let editW = document.createElement('input');
+                        editW.value = svg.rectangles[i].w;
+                        editW.id = 'editW'+(i+1);
+                        editW.name = 'editW'+(i+1);
+                        let editWLabel = document.createElement('label');
+                        editWLabel.for = 'editW'+(i+1);
+                        editWLabel.innerHTML = "width: ";
+                        editForm.appendChild(editWLabel);
+                        editForm.appendChild(document.createElement('br'));
+                        editForm.appendChild(editW);
+                        editForm.appendChild(document.createElement('br'));
+                        
+                        let editH = document.createElement('input');
+                        editH.value = svg.rectangles[i].h;
+                        editH.id = 'editH'+(i+1);
+                        editH.name = 'editH'+(i+1);
+                        let editHLabel = document.createElement('label');
+                        editHLabel.for = 'editH'+(i+1);
+                        editHLabel.innerHTML = "height: ";
+                        editForm.appendChild(editHLabel);
+                        editForm.appendChild(document.createElement('br'));
+                        editForm.appendChild(editH);
+                        editForm.appendChild(document.createElement('br'));
+
+                        let editUnits = document.createElement('input');
+                        editUnits.value = svg.rectangles[i].units;
+                        editUnits.id = 'editRectUnits'+(i+1);
+                        editUnits.name = 'editRectUnits'+(i+1);
+                        let editUnitsLabel = document.createElement('label');
+                        editUnitsLabel.for = 'editRectUnits'+(i+1);
+                        editUnitsLabel.innerHTML = "units: ";
+                        editForm.appendChild(editUnitsLabel);
+                        editForm.appendChild(document.createElement('br'));
+                        editForm.appendChild(editUnits);
+                        editForm.appendChild(document.createElement('br'));
+            
+                        //OTHER ATTRIBUTES
+                        for (let j = 0; j < attributes.length; j++) {
+                            let input = document.createElement('input');
+                            input.value = attributes[j].value;
+                            input.name = 'rectAtt'+(i+1)+j;
+                            input.id = 'rectAtt'+(i+1)+j;
+                            let label = document.createElement('label');
+                            label.for = input.name;
+                            label.innerHTML = attributes[j].name;
+                            editForm.appendChild(label);
+                            editForm.appendChild(document.createElement('br'));
+                            editForm.appendChild(input);
+                            editForm.appendChild(document.createElement('br'));
+                        }
+
+                        //NEW ATTRIBUTE FORM
+                        let editNewName = document.createElement('input');
+                        editNewName.id = 'editRectNewName'+(i+1);
+                        editNewName.name = 'editRectNewName'+(i+1);
+                        let editNewNameLabel = document.createElement('label');
+                        editNewNameLabel.for = 'editRectNewName'+(i+1);
+                        editNewNameLabel.innerHTML = "New Attribute Name: ";
+                        editForm.appendChild(editNewNameLabel);
+                        editForm.appendChild(document.createElement('br'));
+                        editForm.appendChild(editNewName);
+                        editForm.appendChild(document.createElement('br'));
+
+                        let editNewValue = document.createElement('input');
+                        editNewValue.id = 'editRectNewValue'+(i+1);
+                        editNewValue.name = 'editRectNewValue'+(i+1);
+                        let editNewValueLabel = document.createElement('label');
+                        editNewValueLabel.for = 'editRectNewValue'+(i+1);
+                        editNewValueLabel.innerHTML = "New Attribute Value: ";
+                        editForm.appendChild(editNewValueLabel);
+                        editForm.appendChild(document.createElement('br'));
+                        editForm.appendChild(editNewValue);
+                        editForm.appendChild(document.createElement('br'));
+
+                        let submitButton = document.createElement('button');
+                        submitButton.id = 'submitRect'+(i+1);
+                        submitButton.className = "submitButton";
+                        submitButton.innerHTML = "Submit";
+                        document.getElementById('editRect').appendChild(submitButton);
+
+                        $("#submitRect"+(i+1)).click(function (e) {//SUBMIT BUTToN PRESSED
+                            alert("pressed"+(i+1));
+                            if (document.getElementById('editX'+(i+1)).value != xDef) {
+                                //setAttAjax(svg.name, 2, i, "x", document.getElementById('editCX').value);
+                                alert("diff X: "+document.getElementById('editX'+(i+1)).value+" and "+xDef);
+                            }
+                            if (document.getElementById('editY'+(i+1)).value != yDef) {
+                                alert("diff Y: "+document.getElementById('editY'+(i+1)).value+" and "+yDef);
+                            }
+                            if (document.getElementById('editW'+(i+1)).value != wDef) {
+                                alert("diff W");
+                            }
+                            if (document.getElementById('editH'+(i+1)).value != hDef) {
+                                alert("diff H");
+                            }
+                            if (document.getElementById('editRectUnits'+(i+1)).value != unitsDef) {
+                                alert("diff UNITS");
+                            }
+                            for (let j = 0; j < attributes.length; j++) {
+                                if (document.getElementById('rectAtt'+(i+1)+j).value != attributes[j].value) {
+                                    alert("diff OA"+j);
+                                }
+                            }
+                            $('#editRect').slideUp();
+                        });
+            
+                        $('#editRect').slideDown();
+                    });
+                }
+                else {
+                    //if component is not editable
+                    cell0.className = "noeditButton";
+                    $('#'+cell0.id).click(function(e) {
+                        $('#editRect').slideUp();
+                        tbody2.innerHTML = '';//empty tbody2 first
+                        for (let j = 0; j < attributes.length; j++) {
+                            let row = tbody2.insertRow(-1);
+                            let cell = row.insertCell(0);
+                            cell.innerHTML = "Name: "+attributes[j].name+" Value: "+attributes[j].value;
+                        }
+                    });
+                }
+            },
+            fail: function(error) {
+                console.log(error);
+                alert(error);
             }
-            let form = document.getElementById('editRectOA');//div right before new Att stuff
-            form.innerHTML = '';//clear
-            for (let j = 0; j < attributes.length; j++) {
-                let input = document.createElement('input');
-                input.value = attributes[j].value;
-                input.name = 'rectAtt'+j;
-                let label = document.createElement('label');
-                label.for = input.name;
-                label.innerHTML = attributes[j].name;
-                form.appendChild(label);
-                form.appendChild(document.createElement('br'));
-                form.appendChild(input);
-                form.appendChild(document.createElement('br'));
-            }
-
-            $('#editRect').slideDown();
-
-            $("#submitRect").bind("click", (function () {//SUBMIT BUTToN PRESSED
-                //for all regulars atts then for all other atts.
-                $('#editRect').slideUp();
-            }));
         });
     }
 
+
+    //========================================================ALL CIRCLES====================================================
     for (let i = 0; i < svg.circles.length; i++) {//CIRCLES
         let attributes;
         let newRow = tbody.insertRow(-1);
@@ -343,42 +516,172 @@ function addSVGToViewLog(svg) {
             }
         });
 
-        $('#'+cell0.id).click(function(e) {
+        $.ajax({
+            type: 'get',
+            dataType: 'json',
+            url: '/immediate',
+            data: {
+                file: svg.name,
+                type: 1,
+                index: i
+            },
+            success: function (data) {
+                if (data.truth) {
+                    //if immediate child
+                    $('#'+cell0.id).click(function(e) {
             
-            document.getElementById('editCircHeader').innerHTML = "Edit Circ " + (i+1);
-            //default to current values
-            document.getElementById('editCX').value = svg.circles[i].cx;
-            document.getElementById('editCY').value = svg.circles[i].cy;
-            document.getElementById('editR').value = svg.circles[i].r;
-            document.getElementById('editCircUnits').value = svg.circles[i].units;
+                        tbody2.innerHTML = '';//empty tbody2 first
+                        for (let j = 0; j < attributes.length; j++) {
+                            let row = tbody2.insertRow(-1);
+                            let cell = row.insertCell(0);
+                            cell.innerHTML = "Name: "+attributes[j].name+" Value: "+attributes[j].value;
+                        }
 
-            tbody2.innerHTML = '';//empty tbody2 first
-            for (let j = 0; j < attributes.length; j++) {
-                let row = tbody2.insertRow(-1);
-                let cell = row.insertCell(0);
-                cell.innerHTML = "Name: "+attributes[j].name+" Value: "+attributes[j].value;
+                        document.getElementById('editCircHeader').innerHTML = "Edit Circ " + (i+1);
+
+                        let editForm = document.getElementById('editCircForm');
+                        editForm.innerHTML = "";
+                        let buttons = document.getElementById('editCirc').querySelectorAll('.submitButton');
+                        buttons.forEach(button => {
+                            button.remove();
+                        });
+
+                        let editCX = document.createElement('input');
+                        editCX.type = 'text';
+                        editCX.value = svg.circles[i].cx;
+                        editCX.id = 'editCX'+(i+1);
+                        editCX.name = 'editCX'+(i+1);
+                        let editCXLabel = document.createElement('label');
+                        editCXLabel.for = 'editCX'+(i+1);
+                        editCXLabel.innerHTML = "cx: ";
+                        editForm.appendChild(editCXLabel);
+                        editForm.appendChild(document.createElement('br'));
+                        editForm.appendChild(editCX);
+                        editForm.appendChild(document.createElement('br'));
+
+                        let editCY = document.createElement('input');
+                        editCY.value = svg.circles[i].cy;
+                        editCY.id = 'editCY'+(i+1);
+                        editCY.name = 'editCY'+(i+1);
+                        let editCYLabel = document.createElement('label');
+                        editCYLabel.for = 'editCY'+(i+1);
+                        editCYLabel.innerHTML = "cy: ";
+                        editForm.appendChild(editCYLabel);
+                        editForm.appendChild(document.createElement('br'));
+                        editForm.appendChild(editCY);
+                        editForm.appendChild(document.createElement('br'));
+
+                        let editR = document.createElement('input');
+                        editR.value = svg.circles[i].r;
+                        editR.id = 'editR'+(i+1);
+                        editR.name = 'editR'+(i+1);
+                        let editRLabel = document.createElement('label');
+                        editRLabel.for = 'editR'+(i+1);
+                        editRLabel.innerHTML = "radius: ";
+                        editForm.appendChild(editRLabel);
+                        editForm.appendChild(document.createElement('br'));
+                        editForm.appendChild(editR);
+                        editForm.appendChild(document.createElement('br'));
+
+                        let editUnits = document.createElement('input');
+                        editUnits.value = svg.circles[i].units;
+                        editUnits.id = 'editCircUnits'+(i+1);
+                        editUnits.name = 'editCircUnits'+(i+1);
+                        let editUnitsLabel = document.createElement('label');
+                        editUnitsLabel.for = 'editCircUnits'+(i+1);
+                        editUnitsLabel.innerHTML = "units: ";
+                        editForm.appendChild(editUnitsLabel);
+                        editForm.appendChild(document.createElement('br'));
+                        editForm.appendChild(editUnits);
+                        editForm.appendChild(document.createElement('br'));
+
+                        //OTHER ATTRIBUTES
+                        for (let j = 0; j < attributes.length; j++) {
+                            let input = document.createElement('input');
+                            input.value = attributes[j].value;
+                            input.name = 'rectAtt'+(i+1)+j;
+                            input.id = 'rectAtt'+(i+1)+j;
+                            let label = document.createElement('label');
+                            label.for = input.name;
+                            label.innerHTML = attributes[j].name;
+                            editForm.appendChild(label);
+                            editForm.appendChild(document.createElement('br'));
+                            editForm.appendChild(input);
+                            editForm.appendChild(document.createElement('br'));
+                        }
+
+                        //NEW ATTRIBUTE FORM
+                        let editNewName = document.createElement('input');
+                        editNewName.id = 'editCircNewName'+(i+1);
+                        editNewName.name = 'editCircNewName'+(i+1);
+                        let editNewNameLabel = document.createElement('label');
+                        editNewNameLabel.for = 'editCircNewName'+(i+1);
+                        editNewNameLabel.innerHTML = "New Attribute Name: ";
+                        editForm.appendChild(editNewNameLabel);
+                        editForm.appendChild(document.createElement('br'));
+                        editForm.appendChild(editNewName);
+                        editForm.appendChild(document.createElement('br'));
+
+                        let editNewValue = document.createElement('input');
+                        editNewValue.id = 'editCircNewValue'+(i+1);
+                        editNewValue.name = 'editCircNewValue'+(i+1);
+                        let editNewValueLabel = document.createElement('label');
+                        editNewValueLabel.for = 'editCircNewValue'+(i+1);
+                        editNewValueLabel.innerHTML = "New Attribute Value: ";
+                        editForm.appendChild(editNewValueLabel);
+                        editForm.appendChild(document.createElement('br'));
+                        editForm.appendChild(editNewValue);
+                        editForm.appendChild(document.createElement('br'));
+
+                        let submitButton = document.createElement('button');
+                        submitButton.id = 'submitCirc'+(i+1);
+                        submitButton.className = "submitButton";
+                        submitButton.innerHTML = "Submit";
+                        document.getElementById('editCirc').appendChild(submitButton);
+            
+                        $("#submitCirc"+(i+1)).click(function () {//SUBMIT BUTToN PRESSED
+                            if (document.getElementById('editCX'+(i+1)).value != svg.circles[i].cx) {
+                                //setAttAjax(svg.name, 1, i, "cx", document.getElementById('editCX'+(i+1)).value);
+                                alert("diff CX");
+                            }
+                            if (document.getElementById('editCY'+(i+1)).value != svg.circles[i].cy) {
+                                alert("diff CY");
+                            }
+                            if (document.getElementById('editR'+(i+1)).value != svg.circles[i].r) {
+                                alert("diff R");
+                            }
+                            if (document.getElementById('editCircUnits'+(i+1)).value != svg.circles[i].units) {
+                                alert("diff UNITS");
+                            }
+                            for (let j = 0; j < attributes.length; j++) {
+                                if (document.getElementById('circAtt'+(i+1)+j).value != attributes[j].value) {
+                                    alert("diff OA");
+                                }
+                            }
+                            $('#editCirc').slideUp();
+                        });
+
+                        $('#editCirc').slideDown();
+                    });
+                }
+                else {
+                    //if component is not editable
+                    cell0.className = "noeditButton";
+                    $('#'+cell0.id).click(function(e) {
+                        $('#editCirc').slideUp();
+                        tbody2.innerHTML = '';//empty tbody2 first
+                        for (let j = 0; j < attributes.length; j++) {
+                            let row = tbody2.insertRow(-1);
+                            let cell = row.insertCell(0);
+                            cell.innerHTML = "Name: "+attributes[j].name+" Value: "+attributes[j].value;
+                        }
+                    });
+                }
+            },
+            fail: function(error) {
+                console.log(error);
+                alert(error);
             }
-
-            let form = document.getElementById('editCircOA');//div right before new Att stuff
-            form.innerHTML = '';//clear
-            for (let j = 0; j < attributes.length; j++) {
-                let input = document.createElement('input');
-                input.value = attributes[j].value;
-                input.name = 'circAtt'+j;
-                let label = document.createElement('label');
-                label.for = input.name;
-                label.innerHTML = attributes[j].name;
-                form.appendChild(label);
-                form.appendChild(document.createElement('br'));
-                form.appendChild(input);
-                form.appendChild(document.createElement('br'));
-            }
-
-            $('#editCirc').slideDown();
-
-            $("#submitCirc").bind("click", (function () {//SUBMIT BUTToN PRESSED
-                $('#editCirc').slideUp();
-            }));
         });
     }
 
@@ -416,40 +719,127 @@ function addSVGToViewLog(svg) {
             }
         });
 
-        $('#'+cell0.id).click(function(e) {
+        $.ajax({
+            type: 'get',
+            dataType: 'json',
+            url: '/immediate',
+            data: {
+                file: svg.name,
+                type: 3,
+                index: i
+            },
+            success: function (data) {
+                if (data.truth) {
+                    //if immediate child
+                    $('#'+cell0.id).click(function(e) {
             
-            document.getElementById('editPathHeader').innerHTML = "Edit Path " + (i+1);
-            //default to current values
-            document.getElementById('editData').value = svg.paths[i].d;
+                        tbody2.innerHTML = '';//empty tbody2 first
+                        for (let j = 0; j < attributes.length; j++) {
+                            let row = tbody2.insertRow(-1);
+                            let cell = row.insertCell(0);
+                            cell.innerHTML = "Name: "+attributes[j].name+" Value: "+attributes[j].value;
+                        }
 
-            tbody2.innerHTML = '';//empty tbody2 first
-            for (let j = 0; j < attributes.length; j++) {
-                let row = tbody2.insertRow(-1);
-                let cell = row.insertCell(0);
-                cell.innerHTML = "Name: "+attributes[j].name+" Value: "+attributes[j].value;
+                        document.getElementById('editPathHeader').innerHTML = "Edit Path " + (i+1);
+
+                        let editForm = document.getElementById('editPathForm');
+                        editForm.innerHTML = "";
+                        let buttons = document.getElementById('editPath').querySelectorAll('.submitButton');
+                        buttons.forEach(button => {
+                            button.remove();
+                        });
+
+                        let editD = document.createElement('input');
+                        editD.type = 'text';
+                        editD.value = svg.paths[i].d;
+                        editD.id = 'editD'+(i+1);
+                        editD.name = 'editD'+(i+1);
+                        let editDLabel = document.createElement('label');
+                        editDLabel.for = 'editD'+(i+1);
+                        editDLabel.innerHTML = "data: ";
+                        editForm.appendChild(editDLabel);
+                        editForm.appendChild(document.createElement('br'));
+                        editForm.appendChild(editD);
+                        editForm.appendChild(document.createElement('br'));
+
+                        //OTHER ATTRIBUTES
+                        for (let j = 0; j < attributes.length; j++) {
+                            let input = document.createElement('input');
+                            input.value = attributes[j].value;
+                            input.name = 'pathAtt'+(i+1)+j;
+                            input.id = 'pathAtt'+(i+1)+j;
+                            let label = document.createElement('label');
+                            label.for = input.name;
+                            label.innerHTML = attributes[j].name;
+                            editForm.appendChild(label);
+                            editForm.appendChild(document.createElement('br'));
+                            editForm.appendChild(input);
+                            editForm.appendChild(document.createElement('br'));
+                        }
+
+                        //NEW ATTRIBUTE FORM
+                        let editNewName = document.createElement('input');
+                        editNewName.id = 'editPathNewName'+(i+1);
+                        editNewName.name = 'editPathNewName'+(i+1);
+                        let editNewNameLabel = document.createElement('label');
+                        editNewNameLabel.for = 'editPathNewName'+(i+1);
+                        editNewNameLabel.innerHTML = "New Attribute Name: ";
+                        editForm.appendChild(editNewNameLabel);
+                        editForm.appendChild(document.createElement('br'));
+                        editForm.appendChild(editNewName);
+                        editForm.appendChild(document.createElement('br'));
+
+                        let editNewValue = document.createElement('input');
+                        editNewValue.id = 'editPathNewValue'+(i+1);
+                        editNewValue.name = 'editPathNewValue'+(i+1);
+                        let editNewValueLabel = document.createElement('label');
+                        editNewValueLabel.for = 'editPathNewValue'+(i+1);
+                        editNewValueLabel.innerHTML = "New Attribute Value: ";
+                        editForm.appendChild(editNewValueLabel);
+                        editForm.appendChild(document.createElement('br'));
+                        editForm.appendChild(editNewValue);
+                        editForm.appendChild(document.createElement('br'));
+
+                        let submitButton = document.createElement('button');
+                        submitButton.id = 'submitPath'+(i+1);
+                        submitButton.className = "submitButton";
+                        submitButton.innerHTML = "Submit";
+                        document.getElementById('editPath').appendChild(submitButton);
+            
+                        $("#submitPath"+(i+1)).click(function () {//SUBMIT BUTToN PRESSED
+                            if (document.getElementById('editD'+(i+1)).value != svg.paths[i].d) {
+                                //setAttAjax(svg.name, 1, i, "cx", document.getElementById('editCX'+(i+1)).value);
+                                alert("diff D");
+                            }
+                            for (let j = 0; j < attributes.length; j++) {
+                                if (document.getElementById('pathAtt'+(i+1)+j).value != attributes[j].value) {
+                                    alert("diff OA");
+                                }
+                            }
+                            $('#editPath').slideUp();
+                        });
+
+                        $('#editPath').slideDown();
+                    });
+                }
+                else {
+                    //if component is not editable
+                    cell0.className = "noeditButton";
+                    $('#'+cell0.id).click(function(e) {
+                        $('#editPath').slideUp();
+                        tbody2.innerHTML = '';//empty tbody2 first
+                        for (let j = 0; j < attributes.length; j++) {
+                            let row = tbody2.insertRow(-1);
+                            let cell = row.insertCell(0);
+                            cell.innerHTML = "Name: "+attributes[j].name+" Value: "+attributes[j].value;
+                        }
+                    });
+                }
+            },
+            fail: function(error) {
+                console.log(error);
+                alert(error);
             }
-
-            let form = document.getElementById('editPathOA');//div right before new Att stuff
-            form.innerHTML = '';//clear
-            for (let j = 0; j < attributes.length; j++) {
-                let input = document.createElement('input');
-                input.value = attributes[j].value;
-                input.name = 'pathAtt'+j;
-                let label = document.createElement('label');
-                label.for = input.name;
-                label.innerHTML = attributes[j].name;
-                form.appendChild(label);
-                form.appendChild(document.createElement('br'));
-                form.appendChild(input);
-                form.appendChild(document.createElement('br'));
-            }
-
-            $('#editPath').slideDown();
-
-            $("#submitPath").bind("click", (function () {//SUBMIT BUTToN PRESSED
-                //svg.paths.d = document.getElementById('editData').value; //                TODO--> SETATTRIBUTE HERE
-                $('#editPath').slideUp();
-            }));
         });
     }
 
@@ -487,39 +877,110 @@ function addSVGToViewLog(svg) {
             }
         });
 
-        $('#'+cell0.id).click(function(e) {
-
-            document.getElementById('editGroupHeader').innerHTML = "Edit Group " + (i+1);
-            //default to current values
-            document.getElementById('editNumChildren').value = svg.groups[i].children;
-
-            tbody2.innerHTML = '';//empty tbody2 first
-            for (let j = 0; j < attributes.length; j++) {
-                let row = tbody2.insertRow(-1);
-                let cell = row.insertCell(0);
-                cell.innerHTML = "Name: "+attributes[j].name+" Value: "+attributes[j].value;
-            }
-
-            let form = document.getElementById('editGroupOA');//div right before new Att stuff
-            form.innerHTML = '';//clear
-            for (let j = 0; j < attributes.length; j++) {
-                let input = document.createElement('input');
-                input.value = attributes[j].value;
-                input.name = 'groupAtt'+j;
-                let label = document.createElement('label');
-                label.for = input.name;
-                label.innerHTML = attributes[j].name;
-                form.appendChild(label);
-                form.appendChild(document.createElement('br'));
-                form.appendChild(input);
-                form.appendChild(document.createElement('br'));
-            }
-
-            $('#editGroup').slideDown();
+        $.ajax({
+            type: 'get',
+            dataType: 'json',
+            url: '/immediate',
+            data: {
+                file: svg.name,
+                type: 4,
+                index: i
+            },
+            success: function (data) {
+                if (data.truth) {
+                    //if immediate child
+                    $('#'+cell0.id).click(function(e) {
             
-            $("#submitGroup").bind("click", (function () {//SUBMIT BUTToN PRESSED
-                $('#editGroup').slideUp();
-            }));
+                        tbody2.innerHTML = '';//empty tbody2 first
+                        for (let j = 0; j < attributes.length; j++) {
+                            let row = tbody2.insertRow(-1);
+                            let cell = row.insertCell(0);
+                            cell.innerHTML = "Name: "+attributes[j].name+" Value: "+attributes[j].value;
+                        }
+
+                        document.getElementById('editGroupHeader').innerHTML = "Edit Group " + (i+1);
+
+                        let editForm = document.getElementById('editGroupForm');
+                        editForm.innerHTML = "";
+                        let buttons = document.getElementById('editGroup').querySelectorAll('.submitButton');
+                        buttons.forEach(button => {
+                            button.remove();
+                        });
+
+                        //OTHER ATTRIBUTES
+                        for (let j = 0; j < attributes.length; j++) {
+                            let input = document.createElement('input');
+                            input.value = attributes[j].value;
+                            input.name = 'groupAtt'+(i+1)+j;
+                            input.id = 'groupAtt'+(i+1)+j;
+                            let label = document.createElement('label');
+                            label.for = input.name;
+                            label.innerHTML = attributes[j].name;
+                            editForm.appendChild(label);
+                            editForm.appendChild(document.createElement('br'));
+                            editForm.appendChild(input);
+                            editForm.appendChild(document.createElement('br'));
+                        }
+
+                        //NEW ATTRIBUTE FORM
+                        let editNewName = document.createElement('input');
+                        editNewName.id = 'editGroupNewName'+(i+1);
+                        editNewName.name = 'editGroupNewName'+(i+1);
+                        let editNewNameLabel = document.createElement('label');
+                        editNewNameLabel.for = 'editGroupNewName'+(i+1);
+                        editNewNameLabel.innerHTML = "New Attribute Name: ";
+                        editForm.appendChild(editNewNameLabel);
+                        editForm.appendChild(document.createElement('br'));
+                        editForm.appendChild(editNewName);
+                        editForm.appendChild(document.createElement('br'));
+
+                        let editNewValue = document.createElement('input');
+                        editNewValue.id = 'editGroupNewValue'+(i+1);
+                        editNewValue.name = 'editGroupNewValue'+(i+1);
+                        let editNewValueLabel = document.createElement('label');
+                        editNewValueLabel.for = 'editGroupNewValue'+(i+1);
+                        editNewValueLabel.innerHTML = "New Attribute Value: ";
+                        editForm.appendChild(editNewValueLabel);
+                        editForm.appendChild(document.createElement('br'));
+                        editForm.appendChild(editNewValue);
+                        editForm.appendChild(document.createElement('br'));
+
+                        let submitButton = document.createElement('button');
+                        submitButton.id = 'submitGroup'+(i+1);
+                        submitButton.className = "submitButton";
+                        submitButton.innerHTML = "Submit";
+                        document.getElementById('editGroup').appendChild(submitButton);
+            
+                        $("#submitGroup"+(i+1)).click(function () {//SUBMIT BUTToN PRESSED
+                            for (let j = 0; j < attributes.length; j++) {
+                                if (document.getElementById('groupAtt'+(i+1)+j).value != attributes[j].value) {
+                                    alert("diff OA");
+                                }
+                            }
+                            $('#editGroup').slideUp();
+                        });
+
+                        $('#editGroup').slideDown();
+                    });
+                }
+                else {
+                    //if component is not editable
+                    cell0.className = "noeditButton";
+                    $('#'+cell0.id).click(function(e) {
+                        $('#editGroup').slideUp();
+                        tbody2.innerHTML = '';//empty tbody2 first
+                        for (let j = 0; j < attributes.length; j++) {
+                            let row = tbody2.insertRow(-1);
+                            let cell = row.insertCell(0);
+                            cell.innerHTML = "Name: "+attributes[j].name+" Value: "+attributes[j].value;
+                        }
+                    });
+                }
+            },
+            fail: function(error) {
+                console.log(error);
+                alert(error);
+            }
         });
     }
 }

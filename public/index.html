@@ -91,80 +91,31 @@
           </tr>
         </table>
         <!--FORMS FOR EDITING COMPONENTS-->
-        <div class="editParent">
+        <p>NOTE: Only immediate children components (blue name on hover) of the svg may be edited.</p>
+        <div id="editParent" class="editParent">
             <div id="editRect" class="edit">
+                <h10 id="editRectHeader" class="editHeader"></h10><br>
                 <form id="editRectForm">
-                    <h10 id="editRectHeader" class="editHeader"></h10><br>
-                    <label for="editX">x value:</label><br>
-                    <input type="text" id="editX" name="editX"><br>
-                    <label for="editY">y value:</label><br>
-                    <input type="text" id="editY" name="editY"><br>
-                    <label for="editW">width value:</label><br>
-                    <input type="text" id="editW" name="editW"><br>
-                    <label for="editH">height value:</label><br>
-                    <input type="text" id="editH" name="editH"><br>
-                    <label for="editRectUnits">units:</label><br>
-                    <input type="text" id="editRectUnits" name="editRectUnits"><br>
-                    <div id="editRectOA">
 
-                    </div>
-                    <label for="newRectAttName">New Attribute Name:</label><br>
-                    <input type="text" id="newRectAttName" name="newRectAttName"><br>
-                    <label for="newRectAttVal">New Attribute Value:</label><br>
-                    <input type="text" id="newRectAttVal" name="newRectAttVal"><br>
                 </form>
-                <button id="submitRect" class="submitButton">Submit</button>
             </div>
             <div id="editCirc" class="edit">
+                <h7 id="editCircHeader" class="editHeader"></h7><br>
                 <form id="editCircForm">
-                    <h7 id="editCircHeader" class="editHeader"></h7><br>
-                    <label for="editCX">cx value:</label><br>
-                    <input type="text" id="editCX" name="editCX"><br>
-                    <label for="editCY">cy value:</label><br>
-                    <input type="text" id="editCY" name="editCY"><br>
-                    <label for="editR">radius value:</label><br>
-                    <input type="text" id="editR" name="editR"><br>
-                    <label for="editCircUnits">units:</label><br>
-                    <input type="text" id="editCircUnits" name="editCircUnits"><br>
-                    <div id="editCircOA">
-
-                    </div>
-                    <label for="newCircAttName">New Attribute Name:</label><br>
-                    <input type="text" id="newCircAttName" name="newCircAttName"><br>
-                    <label for="newCircAttVal">New Attribute Value:</label><br>
-                    <input type="text" id="newCircAttVal" name="newCircAttVal"><br>
+                    
                 </form>
-                <button id="submitCirc" class="submitButton">Submit</button>
             </div>
             <div id="editPath" class="edit">
+                <h8 id="editPathHeader" class="editHeader"></h8><br>
                 <form id="editPathForm">
-                    <h8 id="editPathHeader" class="editHeader"></h8><br>
-                    <label for="editData">data:</label><br>
-                    <input type="text" id="editData" name="editData"><br>
-                    <div id="editPathOA">
-
-                    </div>
-                    <label for="newPathAttName">New Attribute Name:</label><br>
-                    <input type="text" id="newPathAttName" name="newPathAttName"><br>
-                    <label for="newPathAttVal">New Attribute Value:</label><br>
-                    <input type="text" id="newPathAttVal" name="newPathAttVal"><br>
+                    
                 </form>
-                <button id="submitPath" class="submitButton">Submit</button>
             </div>
             <div id="editGroup" class="edit">
+                <h9 id="editGroupHeader" class="editHeader"></h9><br>
                 <form id="editGroupForm">
-                    <h9 id="editGroupHeader" class="editHeader"></h9><br>
-                    <label for="editNumChildren">number of children:</label><br><!--SHOULD YOU BE ABLE TO DO THIS???-->
-                    <input type="text" id="editNumChildren" name="editNumChildren"><br>
-                    <div id="editGroupOA">
 
-                    </div>
-                    <label for="newGroupAttName">New Attribute Name:</label><br>
-                    <input type="text" id="newGroupAttName" name="newGroupAttName"><br>
-                    <label for="newGroupAttVal">New Attribute Value:</label><br>
-                    <input type="text" id="newGroupAttVal" name="newGroupAttVal"><br>
                 </form>
-                <button id="submitGroup" class="submitButton">Submit</button>
             </div>
         </div>
     </div>

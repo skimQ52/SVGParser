@@ -170,7 +170,14 @@ table td:hover {
     background-color: rgb(204, 202, 202);
     cursor: pointer;
     color: #3801ff;
-    border: 2px solid black;
+}
+.noeditButton {
+    font-weight: bold;
+}
+.noeditButton:hover {
+    background-color: rgb(204, 202, 202);
+    cursor: pointer;
+    color: #ff0101;
 }
 .submitButton {
     margin-top: 10px;

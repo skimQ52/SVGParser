@@ -56,3 +56,6 @@ char* getGroupsSVG(const char* fileName, const char* schemaFile);
 
 char* getOtherAttributesJSON(const char* fileName, const char* schemaFile, int type, int index);
 
+int checkIfImmediateSVG(const char* fileName, const char* schemaFile, int type, int index);
+
+int setAttributeNewSVG(const char* fileName, const char* schemaFile, int type, int index, const char* attName, const char* attValue);

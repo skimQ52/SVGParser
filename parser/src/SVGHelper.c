@@ -697,3 +697,114 @@ char* getOtherAttributesJSON(const char* fileName, const char* schemaFile, int t
     deleteSVG(svg);
     return str;
 }
+
+int checkIfImmediateSVG(const char* fileName, const char* schemaFile, int type, int index) {
+
+    SVG* svg = createValidSVG(fileName, schemaFile);
+    int i = 0;
+
+    if (type == 1) {//circles
+        List* circs = getCircles(svg);
+        ListIterator iter = createIterator(circs);
+        while (i < index) {//iterate to proper component
+            nextElement(&iter);
+            i++;
+        }
+        Circle* circ = (Circle*)iter.current->data;
+
+        ListIterator iter2 = createIterator(svg->circles);
+        for (int j = 0; j < getLength(svg->circles); j++) {
+            Circle* circ2 = (Circle*)iter2.current->data;
+            if (circ == circ2) {
+                deleteSVG(svg);
+                return 1;
+            }
+            nextElement(&iter2);
+        }
+    }
+
+    else if (type == 2) {//rectangles
+        List* rects = getRects(svg);
+        ListIterator iter = createIterator(rects);
+        while (i < index) {//iterate to proper component
+            nextElement(&iter);
+            i++;
+        }
+        Rectangle* rect = (Rectangle*)iter.current->data;
+
+        ListIterator iter2 = createIterator(svg->rectangles);
+        for (int j = 0; j < getLength(svg->rectangles); j++) {
+            Rectangle* rect2 = (Rectangle*)iter2.current->data;
+            if (rect == rect2) {
+                deleteSVG(svg);
+                return 1;
+            }
+            nextElement(&iter2);
+        }
+    }
+
+    else if (type == 3) {//paths
+        List* paths = getPaths(svg);
+        ListIterator iter = createIterator(paths);
+        while (i < index) {//iterate to proper component
+            nextElement(&iter);
+            i++;
+        }
+        Path* path = (Path*)iter.current->data;
+
+        ListIterator iter2 = createIterator(svg->paths);
+        for (int j = 0; j < getLength(svg->paths); j++) {
+            Path* path2 = (Path*)iter2.current->data;
+            if (path == path2) {
+                deleteSVG(svg);
+                return 1;
+            }
+            nextElement(&iter2);
+        }
+    }
+
+    else {//groups
+        List* groups = getGroups(svg);
+        ListIterator iter = createIterator(groups);
+        while (i < index) {//iterate to proper component
+            nextElement(&iter);
+            i++;
+        }
+        Group* group = (Group*)iter.current->data;
+
+        ListIterator iter2 = createIterator(svg->groups);
+        for (int j = 0; j < getLength(svg->groups); j++) {
+            Group* group2 = (Group*)iter2.current->data;
+            if (group == group2) {
+                deleteSVG(svg);
+                return 1;
+            }
+            nextElement(&iter2);
+        }
+    }
+
+    return 0;
+}
+
+int setAttributeNewSVG(const char* fileName, const char* schemaFile, int type, int index, const char* attName, const char* attValue) {
+
+    SVG* svg = createValidSVG(fileName, schemaFile);
+
+    Attribute *att = calloc(1, (sizeof(Attribute) + sizeof(char)*(strlen(attValue)+1)));//malloc enough space for Attribute, and two strings including name flexible array "value[]"
+    att->name = calloc(1, (sizeof(char)*(strlen(attName)+1)));
+    strcpy(att->name, attName);
+    strcpy(att->value, attValue);
+
+    if (setAttribute(svg, type, index, att) == false) {//set the attribute.
+        deleteAttribute(att);
+        deleteSVG(svg);
+        return -1;
+    }
+    
+    if (!writeSVG(svg, fileName)) {
+        deleteSVG(svg);
+        return 0;
+    }
+    deleteSVG(svg);
+    return 1;
+}

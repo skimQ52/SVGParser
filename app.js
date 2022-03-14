@@ -83,6 +83,12 @@ const getGroupsSVG = ffi.ForeignFunction(funcPtr7, 'String', ['CString', 'CStrin
 const funcPtr8 = lib.get('getOtherAttributesJSON');
 const getOtherAttributesJSON = ffi.ForeignFunction(funcPtr8, 'String', ['CString', 'CString', 'int', 'int']);
 
+const funcPtr9 = lib.get('checkIfImmediateSVG');
+const checkIfImmediateSVG = ffi.ForeignFunction(funcPtr9, 'int', ['CString', 'CString', 'int', 'int']);
+
+const funcPtr10 = lib.get('setAttributeNewSVG');
+const setAttributeNewSVG = ffi.ForeignFunction(funcPtr10, 'String', ['CString', 'CString', 'int', 'int', 'CString', 'CString']);
+
 //const svg = createValidSVG('file.svg', 'svg.xsd');//calling the createValidSVG FUnction!
 
 //Respond to POST requests that upload files to uploads/ directory
@@ -176,6 +182,7 @@ app.get('/viewlog', function(req, res) {
     });
 });
 
+//for getting attributes
 app.get('/attributes', function(req, res) {
     let filepath = 'uploads/' + req.query.file;
     //console.log(filepath+req.query.type+req.query.index);
@@ -184,6 +191,32 @@ app.get('/attributes', function(req, res) {
     res.send({
         str: atts
     });
+});
+
+app.get('/immediate', function(req, res) {
+    let filepath = 'uploads/' + req.query.file;
+    //console.log(filepath+" at immediate...");
+    let truth = checkIfImmediateSVG(filepath, 'svg.xsd', req.query.type, req.query.index);
+    //console.log(truth);
+    res.send({
+        truth: truth
+    });
+});
+
+//when changing attributes
+app.get('/changeatt', function(req, res) {
+    let filepath = 'uploads/' + req.query.file;
+    console.log(filepath+" "+req.query.type+" "+req.query.index+" "+req.query.attName+" "+req.query.attValue);
+    console.log(setAttributeNewSVG(filepath, 'svg.xsd', req.query.type, req.query.index, req.query.attName, req.query.attValue));
+    /*if (setAttributeNewSVG(filepath, 'svg.xsd', req.query.type, req.query.index, req.query.attName, req.query.attValue) == -1) {
+        console.log("failed to setAttribute");
+    }
+    else if (setAttributeNewSVG(filepath, 'svg.xsd', req.query.type, req.query.index, req.query.attName, req.query.attValue) == 0) {
+        console.log("failed to writeSVG");
+    }
+    else {
+        console.log("success");
+    }*/
 });
 
 //Sample endpoint
