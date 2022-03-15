@@ -1021,6 +1021,14 @@ char* pathToJSON(const Path *p) {
     }
     char buff[1000];
     sprintf(buff, "%d", getLength(p->otherAttributes));//to determine the number of chars needed to allocate for the returning string for these variables
+    if (strlen(p->data) > 64) {
+        char *trunc = calloc(64, sizeof(char));
+        strncpy(trunc, p->data, 64);
+        str = calloc(1, (sizeof(char)*((19+1) + 64 + strlen(buff))));
+        sprintf(str, "{\"d\":\"%s\",\"numAttr\":%d}", trunc, getLength(p->otherAttributes));
+        free(trunc);
+        return str;
+    }
     str = calloc(1, (sizeof(char)*((19+1) + strlen(p->data) + strlen(buff))));
     sprintf(str, "{\"d\":\"%s\",\"numAttr\":%d}", p->data, getLength(p->otherAttributes));
     return str;

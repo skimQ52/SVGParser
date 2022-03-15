@@ -42,21 +42,8 @@ app.get('/index.js',function(req,res){
 
 
 //SETTING UP FFI-napi!
-/*let parserLib = ffi.Library('./parserLib', {
-    'printFunc': [ 'void', [ ] ],		//return type first, argument list second
-    'createValidSVG': [ 'SVG', [ 'string', 'string'] ], //returns SVG, takes string for filename then string for schema file name
-                                      //for void input type, leave argument list is empty
-    'addTwo': [ 'int', [ 'int' ] ],	//int return, int argument
-    'putDesc' : [ 'void', [ 'string' ] ],
-    'getDesc' : [ 'string', [] ]
-  });*/
-
-  
+ 
 const lib = ffi.DynamicLibrary('libsvgparser.so');
-
-//createValidSVG
-//const funcPtr = lib.get('createValidSVG');
-//const createValidSVG = ffi.ForeignFunction(funcPtr, 'Object *', ['CString', 'CString']);
 
 const funcPtr = lib.get('createSVGtoJSON');
 const createSVGtoJSON = ffi.ForeignFunction(funcPtr, 'String', ['CString', 'CString']);
@@ -87,30 +74,48 @@ const funcPtr9 = lib.get('checkIfImmediateSVG');
 const checkIfImmediateSVG = ffi.ForeignFunction(funcPtr9, 'int', ['CString', 'CString', 'int', 'int']);
 
 const funcPtr10 = lib.get('setAttributeNewSVG');
-const setAttributeNewSVG = ffi.ForeignFunction(funcPtr10, 'String', ['CString', 'CString', 'int', 'int', 'CString', 'CString']);
+const setAttributeNewSVG = ffi.ForeignFunction(funcPtr10, 'int', ['CString', 'CString', 'int', 'int', 'CString', 'CString']);
 
-//const svg = createValidSVG('file.svg', 'svg.xsd');//calling the createValidSVG FUnction!
+const funcPtr11 = lib.get('setTitleDescSVG');
+const setTitleDescSVG = ffi.ForeignFunction(funcPtr11, 'int', ['CString', 'CString', 'CString', 'CString']);
+
+const funcPtr12 = lib.get('validateUploadedSVG');
+const validateUploadedSVG = ffi.ForeignFunction(funcPtr12, 'int', ['CString', 'CString']);
+
+//adding component functions
+const funcPtr13 = lib.get('addRectToSVG');
+const addRectToSVG = ffi.ForeignFunction(funcPtr13, 'int', ['CString', 'CString', 'float', 'float', 'float', 'float', 'CString', 'CString']);
+
+const funcPtr14 = lib.get('addCircToSVG');
+const addCircToSVG = ffi.ForeignFunction(funcPtr14, 'int', ['CString', 'CString', 'float', 'float', 'float', 'CString', 'CString']);
+
 
 //Respond to POST requests that upload files to uploads/ directory
 app.post('/upload', function(req, res) {
-  if(!req.files) {
-    return res.status(400).send('No files were uploaded!');
-  }
- 
-  let uploadFile = req.files.uploadFile;
-  console.log("received "+uploadFile.name+"\n");
-  // Use the mv() method to place the file somewhere on your server
-  uploadFile.mv('uploads/' + uploadFile.name, function(err) {
-    if(err) {
-      return res.status(500).send(err);
+    if(!req.files) {
+        return res.status(400).send('No files were uploaded!');
     }
+    let uploadFile = req.files.uploadFile;
+    console.log("uploaded "+uploadFile.name+"\n");
 
-    res.redirect('/');
-  });
+    // Use the mv() method to place the file somewhere on your server
+    uploadFile.mv('uploads/' + uploadFile.name, function(err) {
+        if(err) {
+            return res.status(500).send(err);
+        }
+
+        res.redirect('/');
+    });
+  
+  
 });
 
 //Respond to GET requests for files in the uploads/ directory
 app.get('/uploads/:name', function(req , res){;
+    /*if (!validateUploadedSVG(uploadFile, 'svg.xsd')) {
+        console.log("INVALID SVG! Cannot be uploaded.");
+        res.send('');
+    }*/
   fs.stat('uploads/' + req.params.name, function(err, stat) {
     if (err == null) {
         res.sendFile(path.join(__dirname+'/uploads/' + req.params.name));
@@ -136,13 +141,18 @@ app.get('/files', function(req, res) {
         let i = 0;
         files.forEach(function(file) {
             if (file.split('.').pop() == "svg") {//if svg file
-                fileList.push(file);
-                //console.log('files: '+fileList[i]);
+                if (!validateUploadedSVG('uploads/'+file, 'svg.xsd')) {
+                    console.log("INVALID SVG "+file+" Cannot be uploaded --> deleting file from server.");
+                    fs.unlinkSync('uploads/'+file);
+                }
+                else {
+                    console.log(file+' acquired by server.');
+                    fileList.push(file); 
+                };
                 i++;
             }
         });
         let str = JSON.stringify(fileList);
-        //console.log("pepe"+str);
         res.send({
             files: str
         });
@@ -203,20 +213,86 @@ app.get('/immediate', function(req, res) {
     });
 });
 
+//change title/description
+app.get('/titledesc', function(req, res) {
+    let filepath = 'uploads/' + req.query.file;
+    let status = setTitleDescSVG(filepath, 'svg.xsd', req.query.type, req.query.text);
+    res.send({
+        status: status
+    });
+});
+
 //when changing attributes
 app.get('/changeatt', function(req, res) {
     let filepath = 'uploads/' + req.query.file;
-    console.log(filepath+" "+req.query.type+" "+req.query.index+" "+req.query.attName+" "+req.query.attValue);
-    console.log(setAttributeNewSVG(filepath, 'svg.xsd', req.query.type, req.query.index, req.query.attName, req.query.attValue));
-    /*if (setAttributeNewSVG(filepath, 'svg.xsd', req.query.type, req.query.index, req.query.attName, req.query.attValue) == -1) {
-        console.log("failed to setAttribute");
+    //console.log(filepath+" "+req.query.type+" "+req.query.index+" "+req.query.attName+" "+req.query.attValue);
+    //console.log(setAttributeNewSVG(filepath, 'svg.xsd', req.query.type, req.query.index, req.query.attName, req.query.attValue));
+    let status = setAttributeNewSVG(filepath, 'svg.xsd', req.query.type, req.query.index, req.query.attName, req.query.attValue);
+    if (status == -1) {
+        console.log("invalid attribute!");
+        res.send("invalid attribute!");
     }
-    else if (setAttributeNewSVG(filepath, 'svg.xsd', req.query.type, req.query.index, req.query.attName, req.query.attValue) == 0) {
+    else if (status == 0) {
         console.log("failed to writeSVG");
+        res.send("failed to writeSVG");
     }
     else {
-        console.log("success");
-    }*/
+        //console.log("success");
+    }
+});
+
+//adding rectangle
+app.get('/addrect', function(req, res) {
+    let filepath = 'uploads/' + req.query.file;
+    let fillValue;
+    let status;
+    console.log("adding new rect to file: "+req.query.file);
+    if (!req.query.fill) {
+        fillValue = "";
+    }
+    else {
+        fillValue = req.query.fill;
+    }
+    //console.log(filepath+req.query.str+fillValue);
+    let rect = JSON.parse(req.query.str);
+    if (addRectToSVG(filepath, 'svg.xsd', rect.x, rect.y, rect.w, rect.h, rect.units, fillValue)) {
+        console.log('successfully added rect');
+        status = 1;
+    }
+    else {
+        console.log('failed to add rect');
+        status = 0;
+    }
+    res.send({
+        status: status
+    });
+});
+
+//adding circle
+app.get('/addcirc', function(req, res) {
+    let filepath = 'uploads/' + req.query.file;
+    let fillValue;
+    let status;
+    console.log("adding new circ to file: "+req.query.file);
+    if (!req.query.fill) {
+        fillValue = "";
+    }
+    else {
+        fillValue = req.query.fill;
+    }
+    //console.log(filepath+req.query.str+fillValue);
+    let circ = JSON.parse(req.query.str);
+    if (addCircToSVG(filepath, 'svg.xsd', circ.cx, circ.cy, circ.r, circ.units, fillValue) == 1) {
+        console.log('successfully added circ');
+        status = 1;
+    }
+    else {
+        console.log('failed to add circ');
+        status = 0;
+    }
+    res.send({
+        status: status
+    });
 });
 
 //Sample endpoint

@@ -129,13 +129,21 @@ table td:hover {
     overflow: auto;
 }
 #titleTable {
+    display:flex;
+    flex-direction: row;
     overflow: auto;
     width: 100%;
+}
+#titleTable th {
+    padding: 0 200px;
+}
+#titleTable td {
+    padding: 20px 30px;
 }
 .componentsParent {
     display: flex;
     flex-direction: row;
-    height: 200px !important;
+    height: 220px !important;
 }
 #componentTable {
     display:block;
@@ -202,6 +210,42 @@ table td:hover {
     display: inline;
     width: 25%;
 }
+
+/*ADDING*/
+.addParent {
+    padding-top: 20px;
+    display: flex;
+    flex-direction: row;
+}
+
+.add {
+    padding: 0px, 10px;
+    float: left;
+    display: inline;
+    width: 50%;
+}
+
+.addHeader {
+    font-size: 35px;
+    font-family: Impact, Haettenschweiler;
+    color:rgb(20, 20, 20);
+    font-size: 350%;
+    margin: 20px;
+    margin-left: 30px;
+    user-select: none;
+    transition: 0.4s;
+}
+
+.addHeader:hover {
+    cursor: pointer;
+    filter: drop-shadow(3px 3px 0px rgb(20, 20, 20));
+    color:rgb(65, 242, 255);
+    text-shadow: #000 0px 0px 1px,   #000 0px 0px 1px,   #000 0px 0px 1px, #000 0px 0px 1px,   #000 0px 0px 1px,   #000 0px 0px 1px, #000 0px 0px 1px,   #000 0px 0px 1px,   #000 0px 0px 1px, #000 0px 0px 1px, #000 0px 0px 1px,   #000 0px 0px 1px;
+    -webkit-font-smoothing: antialiased;
+    transform: translate(-13px, -13px);
+}
+
+
 
 /* ---------------Dropdown Button */
 

@@ -42,15 +42,15 @@
         </div>
       </form>
     </div>
-    <div class="viewLog">
+    <h5 class="panelHeader">SVG View Log</h5>
+    <hr>
+    <div class="dropdown">
+        <select class="dropbtn" name="drop" id="drop">
+            <option value="def" class="dropdown-content" id="def">Select an SVG</option><!--Default option-->
+        </select>
+    </div>
+    <div id ="viewLog" class="viewLog">
         <p id="yo"></p><!--for testing-->
-        <h5 class="panelHeader">SVG View Log</h5>
-        <hr>
-        <div class="dropdown">
-            <select class="dropbtn" name="drop" id="drop">
-                <option value="def" class="dropdown-content" id="def">Select an SVG</option><!--Default option-->
-            </select>
-        </div>
         <table id="viewLogTable">
           <tr><!--IMAGE ROW-->
             <img id="imgVL" src="temp/quad01.svg" width="800px">
@@ -58,12 +58,10 @@
           <tr><!--Row for title and desc-->
             <table id="titleTable" border="1">
               <tr class="tableHeader"><!--TITLE/DESCRIPTION HEADERS ROW-->
-                <th>Title</th>
-                <th>Description</th>
+                <th>Title (max 256 chars)</th>
+                <th>Description (max 256 chars)</th>
               </tr>
-              <tr><!-- title and description-->
-                <td id="titleCell" contenteditable="true"></td>
-                <td id="descCell" contenteditable="true"></td>
+              <tr id="titleRow" contenteditable="true"><!-- title and description-->
               </tr>
             </table>
           </tr>
@@ -71,7 +69,7 @@
             <div class="componentsParent">
                 <table id="componentTable" border="1"><!--Components table-->
                     <tr id="componentH" class="tableHeader"><!--HEADER ROW-->
-                      <th>Component (Click to edit)</th>
+                      <th>Component (Click for more)</th>
                       <th>Summary</th>
                       <th>Other attributes</th>
                     </tr>
@@ -115,6 +113,42 @@
                 <h9 id="editGroupHeader" class="editHeader"></h9><br>
                 <form id="editGroupForm">
 
+                </form>
+            </div>
+        </div>
+        <div id="addParent" class="addParent">
+            <div id="addRect" class="add">
+                <h10 id="addRectHeader" class="addHeader">Add Rect</h10><br>
+                <form id="addRectForm">
+                    <label for="newRectX">x:</label><br>
+                    <input type="text" id="newRectX" name="newRectX"><br>
+                    <label for="newRectY"></label>y:<br>
+                    <input type="text" id="newRectY" name="newRectY"><br>
+                    <label for="newRectW"></label>width:<br>
+                    <input type="text" id="newRectW" name="newRectW"><br>
+                    <label for="newRectH"></label>height:<br>
+                    <input type="text" id="newRectH" name="newRectH"><br>
+                    <label for="newRectUnits"></label>units (optional):<br>
+                    <input type="text" id="newRectUnits" name="newRectUnits"><br>
+                    <label for="newRectFill"></label>fill (optional):<br>
+                    <input type="text" id="newRectFill" name="newRectFill"><br>
+                    <button id="addRectSubmit" class="submitButton">Submit</button>
+                </form>
+            </div>
+            <div id="addCirc" class="add">
+                <h7 id="addCircHeader" class="addHeader">Add Circle</h7><br>
+                <form id="addCircForm">
+                    <label for="newCircCX">cx:</label><br>
+                    <input type="text" id="newCircCX" name="newCircCX"><br>
+                    <label for="newCircCY"></label>cy:<br>
+                    <input type="text" id="newCircCY" name="newCircCY"><br>
+                    <label for="newCircR"></label>radius:<br>
+                    <input type="text" id="newCircR" name="newCircR"><br>
+                    <label for="newCircUnits"></label>units (optional):<br>
+                    <input type="text" id="newCircUnits" name="newCircUnits"><br>
+                    <label for="newCircFill"></label>fill (optional):<br>
+                    <input type="text" id="newCircFill" name="newCircFill"><br>
+                    <button id="addCircSubmit" class="submitButton">Submit</button>
                 </form>
             </div>
         </div>

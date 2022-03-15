@@ -800,6 +800,11 @@ int setAttributeNewSVG(const char* fileName, const char* schemaFile, int type, i
         deleteSVG(svg);
         return -1;
     }
+
+    if (!validateSVG(svg, schemaFile)) {
+        deleteSVG(svg);
+        return -1;
+    }
     
     if (!writeSVG(svg, fileName)) {
         deleteSVG(svg);
@@ -808,3 +813,101 @@ int setAttributeNewSVG(const char* fileName, const char* schemaFile, int type, i
     deleteSVG(svg);
     return 1;
 }
+
+int setTitleDescSVG(const char* fileName, const char* schemaFile, const char* type, const char* newValue) {
+    SVG* svg = createValidSVG(fileName, schemaFile);
+    if (strlen(newValue) > 256) {
+        char *str = calloc(256, sizeof(char));
+        strncpy(str, newValue, 256);
+        if (strcmp(type, "desc") == 0) {
+            strcpy(svg->description, str);
+        }
+        else {
+            strcpy(svg->title, str);
+        }
+        free(str);
+    }
+    else {
+        if (strcmp(type, "desc") == 0) {
+            strcpy(svg->description, newValue);
+        }
+        else {
+            strcpy(svg->title, newValue);
+        }
+    }
+    
+
+    if (!writeSVG(svg, fileName)) {
+        deleteSVG(svg);
+        return 0;
+    }
+    return 1;
+}
+
+int validateUploadedSVG(const char* fileName, const char* schemaFile) {
+    SVG* svg = createValidSVG(fileName, schemaFile);
+    if (svg == NULL) {
+        return 0;
+    }
+    return 1;
+}
+
+int addRectToSVG(const char* fileName, const char* schemaFile, float x, float y, float width, float height, const char* units, const char* fillValue) {
+    SVG* svg = createValidSVG(fileName, schemaFile);
+    Rectangle* rect = calloc(1, sizeof(Rectangle));
+    rect->otherAttributes = initializeList(&attributeToString, &deleteAttribute, &compareAttributes);
+    rect->x = x;
+    rect->y = y;
+    rect->width = width;
+    rect->height = height;
+    strcpy(rect->units, units);
+    
+    if (strlen(fillValue) > 0) {
+        Attribute* fill = calloc(1, (sizeof(Attribute) + sizeof(char)*(strlen(fillValue)+1)));//malloc enough space for Attribute, and two strings including name flexible array "value[]"
+        fill->name = calloc(1, (sizeof(char)*(strlen("fill")+1)));
+        strcpy(fill->name, "fill");
+        strcpy(fill->value, fillValue);
+        insertBack(rect->otherAttributes, fill);
+    }
+    addComponent(svg, 2, rect);
+    if (validateSVG(svg, schemaFile) == false) {
+        deleteSVG(svg);
+        return 0;
+    }
+    if (writeSVG(svg, fileName) == false) {
+        deleteSVG(svg);
+        return 0;
+    }
+    deleteSVG(svg);
+    return 1;
+}
+
+int addCircToSVG(const char* fileName, const char* schemaFile, float cx, float cy, float r, const char* units, const char* fillValue) {
+    SVG* svg = createValidSVG(fileName, schemaFile);
+    Circle* circ = calloc(1, sizeof(Circle));
+    circ->otherAttributes = initializeList(&attributeToString, &deleteAttribute, &compareAttributes);
+    circ->cx = cx;
+    circ->cy = cy;
+    circ->r = r;
+    strcpy(circ->units, units);
+
+    if (strlen(fillValue) > 0) {
+        Attribute* fill = calloc(1, (sizeof(Attribute) + sizeof(char)*(strlen(fillValue)+1)));//malloc enough space for Attribute, and two strings including name flexible array "value[]"
+        fill->name = calloc(1, (sizeof(char)*(strlen("fill")+1)));
+        strcpy(fill->name, "fill");
+        strcpy(fill->value, fillValue);
+        insertBack(circ->otherAttributes, fill);
+    }
+    addComponent(svg, 1, circ);
+    if (validateSVG(svg, schemaFile) == false) {
+        deleteSVG(svg);
+        return 0;
+    }
+    if (writeSVG(svg, fileName) == false) {
+        deleteSVG(svg);
+        return 0;
+    }
+    deleteSVG(svg);
+    return 1;
+}
+

@@ -59,3 +59,11 @@ char* getOtherAttributesJSON(const char* fileName, const char* schemaFile, int t
 int checkIfImmediateSVG(const char* fileName, const char* schemaFile, int type, int index);
 
 int setAttributeNewSVG(const char* fileName, const char* schemaFile, int type, int index, const char* attName, const char* attValue);
+
+int setTitleDescSVG(const char* fileName, const char* schemaFile, const char* type, const char* newValue);
+
+int validateUploadedSVG(const char* fileName, const char* schemaFile);
+
+int addRectToSVG(const char* fileName, const char* schemaFile, float x, float y, float width, float height, const char* units, const char* fillValue);
+
+int addCircToSVG(const char* fileName, const char* schemaFile, float cx, float cy, float r, const char* units, const char* fillValue);

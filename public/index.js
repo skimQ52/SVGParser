@@ -31,12 +31,16 @@ jQuery(document).ready(function() {
     $('#editPath').hide();
     $('#editGroup').hide();
 
+    $('#viewLog').hide();
+
     //set change function for dropdown menu
     $('#drop').change(function(e){
+
         $('#editRect').slideUp();
         $('#editCirc').slideUp();
         $('#editPath').slideUp();
         $('#editGroup').slideUp();
+
         let dropdown = document.getElementById("drop");
         let filename = dropdown.options[dropdown.selectedIndex].text;//file name selected from dropdown
         if (filename != "Select an SVG") {
@@ -66,40 +70,9 @@ jQuery(document).ready(function() {
                 }
             })
         }
+        $('#viewLog').slideDown();//show viewlog for first time (if needed)
     });
     //DROP DOWN FUNCTION^^
-
-
-    //addSVGToFileLog(svg1);//do for all svgs found on server!
-    //addSVGToFileLog(svg2);
-    //addSVGToViewPanel(svg1);
-
-    // On page-load AJAX Example
-    jQuery.ajax({
-        type: 'get',            //Request type
-        dataType: 'json',       //Data type - we will use JSON for almost everything 
-        url: '/endpoint1',   //The server endpoint we are connecting to
-        data: {
-            data1: "Value 1",
-            data2:1234.56
-        },
-        success: function (data) {
-            /*  Do something with returned object
-                Note that what we get is an object, not a string, 
-                so we do not need to parse it on the server.
-                JavaScript really does handle JSONs seamlessly
-            */
-            jQuery('#blah').html("On page load, received string '"+data.somethingElse+"' from server");
-            //We write the object to the console to show that the request was successful
-            console.log(data); 
-
-        },
-        fail: function(error) {
-            // Non-200 return, do something with error
-            $('#blah').html("On page load, received error from server");
-            console.log(error); 
-        }
-    });
 
     //for getting all the file names in /uploads
     $.ajax({
@@ -241,12 +214,72 @@ function addSVGToFileLog(svg, svgName) {
 
 function addSVGToViewLog(svg) {
     
+
+    $('#addRectForm').hide();
+    $('#addCircForm').hide();
+
     let viewLogTable = document.getElementById('viewLogTable');
     document.getElementById("imgVL").src = '/uploads/'+svg.name;
-    document.getElementById("titleCell").innerHTML = svg.title;
-    document.getElementById("titleCell").maxLength = 256;
-    document.getElementById("descCell").innerHTML = svg.description;
+
+    //document.getElementById("titleCell").innerHTML = svg.title;
+    //document.getElementById("titleCell").maxLength = 256;
+    let row = document.getElementById('titleRow');
+    row.innerHTML = '';
+
+    let titleCell = row.insertCell(0);
+    titleCell.innerHTML = svg.title;
+    titleCell.id = 'titleCell'+(svg.name);
+    $('#'+titleCell.id).on('keydown', function (e) {
+        alert('yo');
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault;
+            if (document.getElementById("titleCell").innerHTML != svg.title) {
+                $.ajax ({
+                    type: 'get',
+                    dataType: 'json',
+                    url: '/titledesc',
+                    data: {
+                        file: svg.name,
+                        text: document.getElementById("titleCell").innerHTML,
+                        type: "title"
+                    },
+                    success: function (data) {
+                        window.location.reload();
+                    },
+                    fail: function(error) {
+                        console.log(error);
+                        alert(error);
+                    }
+                });
+            }
+        }
+    });
+    /*document.getElementById("descCell").innerHTML = svg.description;
     document.getElementById("descCell").maxLength = 256;
+    $("#descCell").on('keydown', function (e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault;
+            if (document.getElementById("descCell").innerHTML != svg.description) {
+                $.ajax ({
+                    type: 'get',
+                    dataType: 'json',
+                    url: '/titledesc',
+                    data: {
+                        file: svg.name,
+                        text: document.getElementById("descCell").innerHTML,
+                        type: "desc"
+                    },
+                    success: function (data) {
+                        window.location.reload();
+                    },
+                    fail: function(error) {
+                        console.log(error);
+                        alert(error);
+                    }
+                });
+            }
+        }
+    });*/
 
     //COMPONENTS
     let tbody = document.getElementById('mytbody');
@@ -255,11 +288,6 @@ function addSVGToViewLog(svg) {
 
     for(let i = 0; i < svg.rectangles.length; i++) {//RECTS
 
-        let xDef = svg.rectangles[i].x;
-        let yDef = svg.rectangles[i].y;
-        let wDef = svg.rectangles[i].w;
-        let hDef = svg.rectangles[i].h;
-        let unitsDef = svg.rectangles[i].units;
         let attributes;
         let newRow = tbody.insertRow(-1);
 
@@ -372,18 +400,6 @@ function addSVGToViewLog(svg) {
                         editForm.appendChild(document.createElement('br'));
                         editForm.appendChild(editH);
                         editForm.appendChild(document.createElement('br'));
-
-                        let editUnits = document.createElement('input');
-                        editUnits.value = svg.rectangles[i].units;
-                        editUnits.id = 'editRectUnits'+(i+1);
-                        editUnits.name = 'editRectUnits'+(i+1);
-                        let editUnitsLabel = document.createElement('label');
-                        editUnitsLabel.for = 'editRectUnits'+(i+1);
-                        editUnitsLabel.innerHTML = "units: ";
-                        editForm.appendChild(editUnitsLabel);
-                        editForm.appendChild(document.createElement('br'));
-                        editForm.appendChild(editUnits);
-                        editForm.appendChild(document.createElement('br'));
             
                         //OTHER ATTRIBUTES
                         for (let j = 0; j < attributes.length; j++) {
@@ -430,29 +446,38 @@ function addSVGToViewLog(svg) {
                         document.getElementById('editRect').appendChild(submitButton);
 
                         $("#submitRect"+(i+1)).click(function (e) {//SUBMIT BUTToN PRESSED
-                            alert("pressed"+(i+1));
-                            if (document.getElementById('editX'+(i+1)).value != xDef) {
-                                //setAttAjax(svg.name, 2, i, "x", document.getElementById('editCX').value);
-                                alert("diff X: "+document.getElementById('editX'+(i+1)).value+" and "+xDef);
+                            let changed = false;
+                            if (document.getElementById('editX'+(i+1)).value != svg.rectangles[i].x) {
+                                setAttAjax(svg.name, 2, i, "x", document.getElementById('editX'+(i+1)).value);
+                                changed = true;
                             }
-                            if (document.getElementById('editY'+(i+1)).value != yDef) {
-                                alert("diff Y: "+document.getElementById('editY'+(i+1)).value+" and "+yDef);
+                            if (document.getElementById('editY'+(i+1)).value != svg.rectangles[i].y) {
+                                setAttAjax(svg.name, 2, i, "y", document.getElementById('editY'+(i+1)).value);
+                                changed = true;
                             }
-                            if (document.getElementById('editW'+(i+1)).value != wDef) {
-                                alert("diff W");
+                            if (document.getElementById('editW'+(i+1)).value != svg.rectangles[i].w) {
+                                setAttAjax(svg.name, 2, i, "width", document.getElementById('editW'+(i+1)).value);
+                                changed = true;
                             }
-                            if (document.getElementById('editH'+(i+1)).value != hDef) {
-                                alert("diff H");
-                            }
-                            if (document.getElementById('editRectUnits'+(i+1)).value != unitsDef) {
-                                alert("diff UNITS");
+                            if (document.getElementById('editH'+(i+1)).value != svg.rectangles[i].h) {
+                                setAttAjax(svg.name, 2, i, "height", document.getElementById('editH'+(i+1)).value);
+                                changed = true;
                             }
                             for (let j = 0; j < attributes.length; j++) {
                                 if (document.getElementById('rectAtt'+(i+1)+j).value != attributes[j].value) {
-                                    alert("diff OA"+j);
+                                    setAttAjax(svg.name, 2, i, attributes[j].name, document.getElementById('rectAtt'+(i+1)+j).value);
+                                    changed = true;
                                 }
                             }
+                            if (document.getElementById('editRectNewName'+(i+1)).value && document.getElementById('editRectNewValue'+(i+1)).value) {
+                                setAttAjax(svg.name, 2, i, document.getElementById('editRectNewName'+(i+1)).value, document.getElementById('editRectNewValue'+(i+1)).value);
+                                changed = true;
+                            }
+
                             $('#editRect').slideUp();
+                            if (changed) {
+                                window.location.reload(); 
+                            }
                         });
             
                         $('#editRect').slideDown();
@@ -583,24 +608,12 @@ function addSVGToViewLog(svg) {
                         editForm.appendChild(editR);
                         editForm.appendChild(document.createElement('br'));
 
-                        let editUnits = document.createElement('input');
-                        editUnits.value = svg.circles[i].units;
-                        editUnits.id = 'editCircUnits'+(i+1);
-                        editUnits.name = 'editCircUnits'+(i+1);
-                        let editUnitsLabel = document.createElement('label');
-                        editUnitsLabel.for = 'editCircUnits'+(i+1);
-                        editUnitsLabel.innerHTML = "units: ";
-                        editForm.appendChild(editUnitsLabel);
-                        editForm.appendChild(document.createElement('br'));
-                        editForm.appendChild(editUnits);
-                        editForm.appendChild(document.createElement('br'));
-
                         //OTHER ATTRIBUTES
                         for (let j = 0; j < attributes.length; j++) {
                             let input = document.createElement('input');
                             input.value = attributes[j].value;
-                            input.name = 'rectAtt'+(i+1)+j;
-                            input.id = 'rectAtt'+(i+1)+j;
+                            input.name = 'circAtt'+(i+1)+j;
+                            input.id = 'circAtt'+(i+1)+j;
                             let label = document.createElement('label');
                             label.for = input.name;
                             label.innerHTML = attributes[j].name;
@@ -640,27 +653,35 @@ function addSVGToViewLog(svg) {
                         document.getElementById('editCirc').appendChild(submitButton);
             
                         $("#submitCirc"+(i+1)).click(function () {//SUBMIT BUTToN PRESSED
+                            let changed = false;
                             if (document.getElementById('editCX'+(i+1)).value != svg.circles[i].cx) {
-                                //setAttAjax(svg.name, 1, i, "cx", document.getElementById('editCX'+(i+1)).value);
-                                alert("diff CX");
+                                setAttAjax(svg.name, 1, i, "cx", document.getElementById('editCX'+(i+1)).value);
+                                changed = true;
                             }
                             if (document.getElementById('editCY'+(i+1)).value != svg.circles[i].cy) {
-                                alert("diff CY");
+                                setAttAjax(svg.name, 1, i, "cy", document.getElementById('editCY'+(i+1)).value);
+                                changed = true;
                             }
                             if (document.getElementById('editR'+(i+1)).value != svg.circles[i].r) {
-                                alert("diff R");
-                            }
-                            if (document.getElementById('editCircUnits'+(i+1)).value != svg.circles[i].units) {
-                                alert("diff UNITS");
+                                setAttAjax(svg.name, 1, i, "r", document.getElementById('editR'+(i+1)).value);
+                                changed = true;
                             }
                             for (let j = 0; j < attributes.length; j++) {
                                 if (document.getElementById('circAtt'+(i+1)+j).value != attributes[j].value) {
-                                    alert("diff OA");
+                                    setAttAjax(svg.name, 1, i, attributes[j].name, document.getElementById('circAtt'+(i+1)+j).value);
+                                    changed = true;
                                 }
                             }
-                            $('#editCirc').slideUp();
-                        });
+                            if (document.getElementById('editCircNewName'+(i+1)).value && document.getElementById('editCircNewValue'+(i+1)).value) {
+                                setAttAjax(svg.name, 1, i, document.getElementById('editCircNewName'+(i+1)).value, document.getElementById('editCircNewValue'+(i+1)).value);
+                                changed = true;
+                            }
 
+                            $('#editCirc').slideUp();
+                            if (changed) {
+                                window.location.reload(); 
+                            }
+                        });
                         $('#editCirc').slideDown();
                     });
                 }
@@ -807,16 +828,25 @@ function addSVGToViewLog(svg) {
                         document.getElementById('editPath').appendChild(submitButton);
             
                         $("#submitPath"+(i+1)).click(function () {//SUBMIT BUTToN PRESSED
+                            let changed = false;
                             if (document.getElementById('editD'+(i+1)).value != svg.paths[i].d) {
-                                //setAttAjax(svg.name, 1, i, "cx", document.getElementById('editCX'+(i+1)).value);
-                                alert("diff D");
+                                setAttAjax(svg.name, 3, i, "d", document.getElementById('editD'+(i+1)).value);
+                                changed = true;
                             }
                             for (let j = 0; j < attributes.length; j++) {
                                 if (document.getElementById('pathAtt'+(i+1)+j).value != attributes[j].value) {
-                                    alert("diff OA");
+                                    setAttAjax(svg.name, 3, i, attributes[j].name, document.getElementById('pathAtt'+(i+1)+j).value);
+                                    changed = true;
                                 }
                             }
+                            if (document.getElementById('editPathNewName'+(i+1)).value && document.getElementById('editPathNewValue'+(i+1)).value) {
+                                setAttAjax(svg.name, 3, i, document.getElementById('editPathNewName'+(i+1)).value, document.getElementById('editPathNewValue'+(i+1)).value);
+                                changed = true;
+                            }
                             $('#editPath').slideUp();
+                            if (changed) {
+                                window.location.reload();
+                            }
                         });
 
                         $('#editPath').slideDown();
@@ -952,14 +982,22 @@ function addSVGToViewLog(svg) {
                         document.getElementById('editGroup').appendChild(submitButton);
             
                         $("#submitGroup"+(i+1)).click(function () {//SUBMIT BUTToN PRESSED
+                            let changed = false;
                             for (let j = 0; j < attributes.length; j++) {
                                 if (document.getElementById('groupAtt'+(i+1)+j).value != attributes[j].value) {
-                                    alert("diff OA");
+                                    setAttAjax(svg.name, 4, i, attributes[j].name, document.getElementById('groupAtt'+(i+1)+j).value);
+                                    changed = true;
                                 }
                             }
+                            if (document.getElementById('editGroupNewName'+(i+1)).value && document.getElementById('editGroupNewValue'+(i+1)).value) {
+                                setAttAjax(svg.name, 4, i, document.getElementById('editGroupNewName'+(i+1)).value, document.getElementById('editGroupNewValue'+(i+1)).value);
+                                changed = true;
+                            }
                             $('#editGroup').slideUp();
+                            if (changed) {
+                                window.location.reload();
+                            }
                         });
-
                         $('#editGroup').slideDown();
                     });
                 }
@@ -983,4 +1021,108 @@ function addSVGToViewLog(svg) {
             }
         });
     }
+
+
+    //===================================================ADDING COMPONENT SECTION============================================
+    $('#addRectHeader').click(function(e) {
+        e.preventDefault();
+        $('#addRectForm').slideDown();
+    });
+
+    $("#addRectSubmit").click(function (e) {//SUBMIT BUTToN PRESSED
+        e.preventDefault();
+        if (document.getElementById('newRectW').value < 0 || document.getElementById('newRectH').value < 0) {
+            alert("Width/Height of a circle cannot be negative.");
+        }
+        else if (document.getElementById('newRectX').value && document.getElementById('newRectY').value && document.getElementById('newRectW').value && document.getElementById('newRectH').value) {
+            rectangle = {
+                x: parseFloat(document.getElementById('newRectX').value),
+                y: parseFloat(document.getElementById('newRectY').value),
+                w: parseFloat(document.getElementById('newRectW').value),
+                h: parseFloat(document.getElementById('newRectH').value),
+                units: document.getElementById('newRectUnits').value
+            }
+            let str = JSON.stringify(rectangle)
+            //alert(str);
+            $.ajax({
+                type: 'get',
+                dataType: 'json',
+                url: '/addrect',
+                data: {
+                    file: svg.name,
+                    str: str,
+                    fill: document.getElementById('newRectFill').value
+                },
+                
+                success: function (data) {
+                    if (!data.status) {
+                        alert("Something went wrong with adding this component...");
+                    }
+                },
+
+                fail: function (error) {
+                    alert("error adding component "+error);
+                }
+            })
+            $('#addRectForm').slideUp();
+            window.location.reload();
+        }
+        else if (document.getElementById('newRectX').value || document.getElementById('newRectY').value || document.getElementById('newRectW').value || document.getElementById('newRectH').value){
+            alert("Please enter values for all necessary parameters!");
+        }
+        else {
+            $('#addRectForm').slideUp();
+        }
+    });
+
+    //add circle
+    $('#addCircHeader').click(function(e) {
+        e.preventDefault();
+        $('#addCircForm').slideDown();
+    });
+
+    $("#addCircSubmit").click(function (e) {//SUBMIT BUTToN PRESSED
+        e.preventDefault();
+        if (parseFloat(document.getElementById('newCircR').value) < 0) {
+            alert("Radius of a circle cannot be negative.");
+        }
+        else if(document.getElementById('newCircCX').value && document.getElementById('newCircCY').value && document.getElementById('newCircR').value) {
+            circle = {
+                cx: parseFloat(document.getElementById('newCircCX').value),
+                cy: parseFloat(document.getElementById('newCircCY').value),
+                r: parseFloat(document.getElementById('newCircR').value),
+                units: document.getElementById('newCircUnits').value
+            }
+            let str = JSON.stringify(circle)
+            alert(str);
+            $.ajax({
+                type: 'get',
+                dataType: 'json',
+                url: '/addcirc',
+                data: {
+                    file: svg.name,
+                    str: str,
+                    fill: document.getElementById('newCircFill').value
+                },
+                
+                success: function (data) {
+                    if (!data.status) {
+                        alert("Something went wrong with adding this component...");
+                    }
+                },
+
+                fail: function (error) {
+                    alert("error adding component "+error);
+                }
+            })
+            $('#addCircForm').slideUp();
+            window.location.reload();
+        }
+        else if (document.getElementById('newCircCX').value || document.getElementById('newCircCY').value || document.getElementById('newCircR').value) {
+            alert("Please enter values for all necessary parameters!");
+        }
+        else {
+            $('#addCircForm').slideUp();
+        }
+    });
 }
