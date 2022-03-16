@@ -89,6 +89,18 @@ const addRectToSVG = ffi.ForeignFunction(funcPtr13, 'int', ['CString', 'CString'
 const funcPtr14 = lib.get('addCircToSVG');
 const addCircToSVG = ffi.ForeignFunction(funcPtr14, 'int', ['CString', 'CString', 'float', 'float', 'float', 'CString', 'CString']);
 
+//create new svg
+const funcPtr15 = lib.get('createNewSVG');
+const createNewSVG = ffi.ForeignFunction(funcPtr15, 'int', ['CString', 'CString', 'CString', 'CString', 'CString']);
+
+//scale components
+const funcPtr16 = lib.get('scaleComponent');
+const scaleComponent = ffi.ForeignFunction(funcPtr16, 'int', ['CString', 'CString', 'int', 'int', 'float']);
+
+const funcPtr17 = lib.get('scaleAllComponents');
+const scaleAllComponents = ffi.ForeignFunction(funcPtr17, 'int', ['CString', 'CString', 'CString', 'float']);
+
+
 
 //Respond to POST requests that upload files to uploads/ directory
 app.post('/upload', function(req, res) {
@@ -111,7 +123,7 @@ app.post('/upload', function(req, res) {
 });
 
 //Respond to GET requests for files in the uploads/ directory
-app.get('/uploads/:name', function(req , res){;
+app.get('/uploads/:name', function(req , res) {
     /*if (!validateUploadedSVG(uploadFile, 'svg.xsd')) {
         console.log("INVALID SVG! Cannot be uploaded.");
         res.send('');
@@ -146,7 +158,7 @@ app.get('/files', function(req, res) {
                     fs.unlinkSync('uploads/'+file);
                 }
                 else {
-                    console.log(file+' acquired by server.');
+                    console.log('   '+file+' acquired by server.');
                     fileList.push(file); 
                 };
                 i++;
@@ -164,10 +176,12 @@ app.get('/onload', function(req, res) {
     //console.log('uploads/'+req.query.fileSent);
     //console.log(req.query.data1);
     let svgJSON = createSVGtoJSON('uploads/' + req.query.fileSent, 'svg.xsd');
-    //console.log(req.query.fileSent + ": " +svgJSON);
     let svg = JSON.parse(svgJSON);
+    var stats = fs.statSync("uploads/"+req.query.fileSent);
+    var fileSize = Math.ceil(stats.size/1024);
     res.send({
-        retu: svg
+        retu: svg,
+        size: fileSize
     });
 });
 
@@ -216,6 +230,7 @@ app.get('/immediate', function(req, res) {
 //change title/description
 app.get('/titledesc', function(req, res) {
     let filepath = 'uploads/' + req.query.file;
+    console.log("changing "+req.query.type+" of file "+req.query.file);
     let status = setTitleDescSVG(filepath, 'svg.xsd', req.query.type, req.query.text);
     res.send({
         status: status
@@ -232,13 +247,44 @@ app.get('/changeatt', function(req, res) {
         console.log("invalid attribute!");
         res.send("invalid attribute!");
     }
-    else if (status == 0) {
+    if (status == 0) {
         console.log("failed to writeSVG");
         res.send("failed to writeSVG");
     }
-    else {
-        //console.log("success");
+});
+
+//scale component
+app.get('/scale', function(req, res) {
+    let filepath = 'uploads/' + req.query.file;
+    //console.log(filepath+" "+req.query.type+" "+req.query.index+" "+req.query.attName+" "+req.query.attValue);
+    console.log(req.query.file+': scaling component '+req.query.type+" "+req.query.index+" by factor "+req.query.factor);
+    let status = scaleComponent(filepath, 'svg.xsd', req.query.type, req.query.index, req.query.factor);
+    if (status == -1) {
+        console.log("invalid scaling!");
     }
+    if (status == 0) {
+        console.log("failed to writeSVG");
+    }
+    res.send({
+        status: status
+    });
+});
+
+//scale ALL component
+app.get('/scaleall', function(req, res) {
+    let filepath = 'uploads/' + req.query.file;
+    //console.log(filepath+" "+req.query.type+" "+req.query.index+" "+req.query.attName+" "+req.query.attValue);
+    console.log(req.query.file+': scaling all components of type '+req.query.type+" by factor "+req.query.factor);
+    let status = scaleAllComponents(filepath, 'svg.xsd', req.query.type, req.query.factor);
+    if (status == -1) {
+        console.log("invalid scaling!");
+    }
+    if (status == 0) {
+        console.log("failed to writeSVG");
+    }
+    res.send({
+        status: status
+    });
 });
 
 //adding rectangle
@@ -280,7 +326,7 @@ app.get('/addcirc', function(req, res) {
     else {
         fillValue = req.query.fill;
     }
-    //console.log(filepath+req.query.str+fillValue);
+
     let circ = JSON.parse(req.query.str);
     if (addCircToSVG(filepath, 'svg.xsd', circ.cx, circ.cy, circ.r, circ.units, fillValue) == 1) {
         console.log('successfully added circ');
@@ -289,6 +335,25 @@ app.get('/addcirc', function(req, res) {
     else {
         console.log('failed to add circ');
         status = 0;
+    }
+    res.send({
+        status: status
+    });
+});
+
+//creating new svg
+app.get('/createsvg', function(req, res) {
+    let filepath = 'uploads/' + req.query.file;
+    let viewbox;
+    if (!req.query.viewbox) {
+        viewbox = "0 0 800 800";//default to 800
+    }
+    else {
+        viewbox = "0 0 "+req.query.viewbox+" "+req.query.viewbox;
+    }
+    let status = createNewSVG(filepath, 'svg.xsd', req.query.title, req.query.desc, viewbox);
+    if (status == 0) {
+        console.log("Could not create new SVG...");
     }
     res.send({
         status: status

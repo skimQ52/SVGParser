@@ -67,3 +67,9 @@ int validateUploadedSVG(const char* fileName, const char* schemaFile);
 int addRectToSVG(const char* fileName, const char* schemaFile, float x, float y, float width, float height, const char* units, const char* fillValue);
 
 int addCircToSVG(const char* fileName, const char* schemaFile, float cx, float cy, float r, const char* units, const char* fillValue);
+
+int createNewSVG(const char* fileName, const char* schemaFile, const char* title, const char* desc, const char* viewbox);
+
+int scaleComponent(const char* fileName, const char* schemaFile, int type, int index, float factor);
+
+int scaleAllComponents(const char* fileName, const char* schemaFile, const char* type, float factor);

@@ -911,3 +911,126 @@ int addCircToSVG(const char* fileName, const char* schemaFile, float cx, float c
     return 1;
 }
 
+int createNewSVG(const char* fileName, const char* schemaFile, const char* title, const char* desc, const char* viewbox) {
+    SVG* mySVG = malloc(sizeof(SVG));
+
+    //initialize members to be empty!
+    mySVG->namespace[0] = '\0';
+    mySVG->title[0] = '\0';
+    mySVG->description[0] = '\0';
+    
+    //initialize lists in svg
+    mySVG->rectangles = initializeList(&rectangleToString, &deleteRectangle, &compareRectangles);
+    mySVG->paths = initializeList(&pathToString, &deletePath, &comparePaths);
+    mySVG->circles = initializeList(&circleToString, &deleteCircle, &compareCircles);
+    mySVG->groups = initializeList(&groupToString, &deleteGroup, &compareGroups);
+    mySVG->otherAttributes = initializeList(&attributeToString, &deleteAttribute, &compareAttributes);
+
+    strcpy(mySVG->namespace, "http://www.w3.org/2000/svg");
+    strcpy(mySVG->title, title);
+    strcpy(mySVG->description, desc);
+
+    Attribute *newAttribute = calloc(1, (sizeof(Attribute) + sizeof(char)*(strlen((viewbox)+1))));//malloc enough space for Attribute, and two strings including name flexible array "value[]"
+    newAttribute->name = calloc(1, (sizeof(char)*(strlen(("viewBox")+1))));
+    strcpy(newAttribute->name, "viewBox");
+    strcpy(newAttribute->value, viewbox);
+    insertBack(mySVG->otherAttributes, newAttribute);
+
+    if (!validateSVG(mySVG, schemaFile)) {
+        deleteSVG(mySVG);
+        return 0;
+    }
+
+    if (!writeSVG(mySVG, fileName)) {
+        deleteSVG(mySVG);
+        return 0;
+    }
+    deleteSVG(mySVG);
+    return 1;
+}
+
+int scaleComponent(const char* fileName, const char* schemaFile, int type, int index, float factor) {
+
+    SVG* svg = createValidSVG(fileName, schemaFile);
+    int i = 0;
+    if (type == 2) {//type RECTANGLE
+        List* rects = getRects(svg);
+        ListIterator iter = createIterator(rects);
+        while (i < index) {//iterate to proper component
+            nextElement(&iter);
+            i++;
+        }
+        Rectangle* rect = (Rectangle*)iter.current->data;
+        rect->width *= factor;
+        rect->height *= factor;
+        freeList(rects);
+    }
+
+    else {//type CIRCLE
+        List* circs = getCircles(svg);
+        ListIterator iter = createIterator(circs);
+        while (i < index) {//iterate to proper component
+            nextElement(&iter);
+            i++;
+        }
+        Circle* circ = (Circle*)iter.current->data;
+        circ->r *= factor;
+        freeList(circs);
+    }
+
+    if (!validateSVG(svg, schemaFile)) {
+        deleteSVG(svg);
+        return -1;
+    }
+
+    if (!writeSVG(svg, fileName)) {
+        deleteSVG(svg);
+        return 0;
+    }
+
+    deleteSVG(svg);
+    return 1;
+}
+
+int scaleAllComponents(const char* fileName, const char* schemaFile, const char* type, float factor) {
+
+    SVG* svg = createValidSVG(fileName, schemaFile);
+    int i = 0;
+    if (strcmp(type, "rect") == 0 || strcmp(type, "image") == 0) {//type RECTANGLE
+        List* rects = getRects(svg);
+        ListIterator iter = createIterator(rects);
+        while (i < getLength(rects)) {//iterate through all rects
+            Rectangle* rect = (Rectangle*)iter.current->data;
+            rect->width *= factor;
+            rect->height *= factor;
+            nextElement(&iter);
+            i++;
+        }
+        freeList(rects);
+    }
+
+    if (strcmp(type, "circ") == 0 || strcmp(type, "image") == 0) {//type Circle
+        List* circs = getCircles(svg);
+        ListIterator iter = createIterator(circs);
+        while (i < getLength(circs)) {//iterate through all circs
+            Circle* circ = (Circle*)iter.current->data;
+            circ->r *= factor;
+            nextElement(&iter);
+            i++;
+        }
+        freeList(circs);
+    }
+
+    if (!validateSVG(svg, schemaFile)) {
+        deleteSVG(svg);
+        return -1;
+    }
+
+    if (!writeSVG(svg, fileName)) {
+        deleteSVG(svg);
+        return 0;
+    }
+
+    deleteSVG(svg);
+    return 1;
+}

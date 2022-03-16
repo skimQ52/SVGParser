@@ -33,6 +33,54 @@ jQuery(document).ready(function() {
 
     $('#viewLog').hide();
 
+    //CREATE SVG!
+    $('#addSVGForm').hide();
+
+    $('#addSVGHeader').click(function(e) {
+        e.preventDefault();
+        $('#addSVGForm').slideDown();
+    });
+
+    $('#addSVGSubmit').click(function(e) {
+        e.preventDefault();
+        if (!document.getElementById('newSVGName').value && !document.getElementById('newSVGTitle').value && !document.getElementById('newSVGDesc').value && !document.getElementById('newSVGView').value) {
+            $('#addSVGForm').slideUp();
+        }
+        else if (!document.getElementById('newSVGName').value) {
+            alert("Please provide a filename!");
+        }
+        else if (document.getElementById('newSVGName').value.split('.').pop() != "svg") {
+            alert('Please provide a valid filename! (.svg)');
+        }
+        else {
+            alert(document.getElementById('newSVGName').value+document.getElementById('newSVGTitle').value+document.getElementById('newSVGDesc').value+document.getElementById('newSVGView').value);
+            $.ajax({
+                type: 'get',
+                dataType: 'json',
+                url: '/createsvg',
+                data: {
+                    file: document.getElementById('newSVGName').value,
+                    title: document.getElementById('newSVGTitle').value,
+                    desc: document.getElementById('newSVGDesc').value,
+                    viewbox: document.getElementById('newSVGView').value
+                },
+                success: function (data) {
+                    if (data.status == 1) {
+                        $('#addSVGForm').slideUp();
+                        window.location.reload();
+                    }
+                    else {
+                        alert("Unable to create this SVG...");
+                    }
+                },
+                fail: function(error) {
+                    console.log(error);
+                    alert(error);
+                }
+            });
+        }
+    });
+
     //set change function for dropdown menu
     $('#drop').change(function(e){
 
@@ -90,17 +138,6 @@ jQuery(document).ready(function() {
             alert(error);
         }
     });
-
-    // Event listener form example , we can use this instead explicitly listening for events
-    // No redirects if possible
-    $('#someform').submit(function(e){
-        $('#blah').html("Form has data: "+$('#entryBox').val());
-        e.preventDefault();
-        //Pass data to the Ajax call, so it gets passed to the server
-        $.ajax({
-            //Create an object for connecting to another waypoint
-        });
-    });
 });
 
 function setAttAjax(svgName, type, index, attName, attValue) {
@@ -141,7 +178,7 @@ function ajaxFilenameToJSON(str) {
                 fileSent: file
             },
             success: function (data) {
-                addSVGToFileLog(data.retu, file);
+                addSVGToFileLog(data.retu, file, data.size);
                 addToSVGDropDown(file);
             },
             fail: function(error) {
@@ -161,10 +198,10 @@ function addToSVGDropDown(file) {
     dropdown.appendChild(option);
 }
 
-function addSVGToFileLog(svg, svgName) {
+function addSVGToFileLog(svg, svgName, size) {
     let fileLogTable = document.getElementById('table');
 
-    //document.getElementById("nofiles").innerHTML = '';
+    $('#noFilesRow').hide();
 
     let newRow = fileLogTable.insertRow(-1);
 
@@ -191,8 +228,8 @@ function addSVGToFileLog(svg, svgName) {
     cell1.appendChild(a1);
 
     let cell2 = newRow.insertCell(2);
-    //let filesize = document.createTextNode(someFile.size);
-    //cell2.appendChild(filesize);
+    let filesize = document.createTextNode(size+"kB");
+    cell2.appendChild(filesize);
 
     let cell3 = newRow.insertCell(3);
     let recs = document.createTextNode(svg.numRect);
@@ -217,69 +254,15 @@ function addSVGToViewLog(svg) {
 
     $('#addRectForm').hide();
     $('#addCircForm').hide();
+    $('#changeTitleForm').hide();
+    $('#scaleAllForm').hide();
 
-    let viewLogTable = document.getElementById('viewLogTable');
     document.getElementById("imgVL").src = '/uploads/'+svg.name;
+    document.getElementById("imgVL").width = 800;
 
-    //document.getElementById("titleCell").innerHTML = svg.title;
-    //document.getElementById("titleCell").maxLength = 256;
-    let row = document.getElementById('titleRow');
-    row.innerHTML = '';
+    document.getElementById("titleCell").innerHTML = svg.title;
+    document.getElementById("descCell").innerHTML = svg.description;
 
-    let titleCell = row.insertCell(0);
-    titleCell.innerHTML = svg.title;
-    titleCell.id = 'titleCell'+(svg.name);
-    $('#'+titleCell.id).on('keydown', function (e) {
-        alert('yo');
-        if (e.key === 'Enter' || e.keyCode === 13) {
-            e.preventDefault;
-            if (document.getElementById("titleCell").innerHTML != svg.title) {
-                $.ajax ({
-                    type: 'get',
-                    dataType: 'json',
-                    url: '/titledesc',
-                    data: {
-                        file: svg.name,
-                        text: document.getElementById("titleCell").innerHTML,
-                        type: "title"
-                    },
-                    success: function (data) {
-                        window.location.reload();
-                    },
-                    fail: function(error) {
-                        console.log(error);
-                        alert(error);
-                    }
-                });
-            }
-        }
-    });
-    /*document.getElementById("descCell").innerHTML = svg.description;
-    document.getElementById("descCell").maxLength = 256;
-    $("#descCell").on('keydown', function (e) {
-        if (e.key === 'Enter' || e.keyCode === 13) {
-            e.preventDefault;
-            if (document.getElementById("descCell").innerHTML != svg.description) {
-                $.ajax ({
-                    type: 'get',
-                    dataType: 'json',
-                    url: '/titledesc',
-                    data: {
-                        file: svg.name,
-                        text: document.getElementById("descCell").innerHTML,
-                        type: "desc"
-                    },
-                    success: function (data) {
-                        window.location.reload();
-                    },
-                    fail: function(error) {
-                        console.log(error);
-                        alert(error);
-                    }
-                });
-            }
-        }
-    });*/
 
     //COMPONENTS
     let tbody = document.getElementById('mytbody');
@@ -416,6 +399,18 @@ function addSVGToViewLog(svg) {
                             editForm.appendChild(document.createElement('br'));
                         }
 
+                        //SCALE Rect
+                        let scaleRect = document.createElement('input');
+                        scaleRect.id = 'scaleRect'+(i+1);
+                        scaleRect.name = 'scaleRect'+(i+1);
+                        let scaleRectLabel = document.createElement('label');
+                        scaleRectLabel.for = 'scaleRect'+(i+1);
+                        scaleRectLabel.innerHTML = "Scale rect by factor: ";
+                        editForm.appendChild(scaleRectLabel);
+                        editForm.appendChild(document.createElement('br'));
+                        editForm.appendChild(scaleRect);
+                        editForm.appendChild(document.createElement('br'));
+
                         //NEW ATTRIBUTE FORM
                         let editNewName = document.createElement('input');
                         editNewName.id = 'editRectNewName'+(i+1);
@@ -472,6 +467,37 @@ function addSVGToViewLog(svg) {
                             if (document.getElementById('editRectNewName'+(i+1)).value && document.getElementById('editRectNewValue'+(i+1)).value) {
                                 setAttAjax(svg.name, 2, i, document.getElementById('editRectNewName'+(i+1)).value, document.getElementById('editRectNewValue'+(i+1)).value);
                                 changed = true;
+                            }
+                            if (document.getElementById('scaleRect'+(i+1)).value) {
+                                if (parseFloat(document.getElementById('scaleRect'+(i+1)).value) > 0) {
+                                    $.ajax({
+                                        type: 'get',
+                                        dataType: 'json',
+                                        url: '/scale',
+                                        data: {
+                                            file: svg.name,
+                                            type: 2,
+                                            index: i,
+                                            factor: parseFloat(document.getElementById('scaleRect'+(i+1)).value)
+                                        },
+                                        success: function (data) {
+                                            if (data.status == -1) {
+                                                alert("Created invalid SVG...");
+                                            }
+                                            if (data.status == 0) {
+                                                alert("Could not save this scaling...");
+                                            }
+                                        },
+                                        fail: function(error) {
+                                            console.log(error);
+                                            alert(error);
+                                        }
+                                    });
+                                    changed = true;
+                                }
+                                else {
+                                    alert("Please enter a valid scaling factor.");
+                                }
                             }
 
                             $('#editRect').slideUp();
@@ -623,6 +649,18 @@ function addSVGToViewLog(svg) {
                             editForm.appendChild(document.createElement('br'));
                         }
 
+                        //SCALE Circ
+                        let scaleCirc = document.createElement('input');
+                        scaleCirc.id = 'scaleCirc'+(i+1);
+                        scaleCirc.name = 'scaleCirc'+(i+1);
+                        let scaleCircLabel = document.createElement('label');
+                        scaleCircLabel.for = 'scaleCirc'+(i+1);
+                        scaleCircLabel.innerHTML = "Scale circ by factor: ";
+                        editForm.appendChild(scaleCircLabel);
+                        editForm.appendChild(document.createElement('br'));
+                        editForm.appendChild(scaleCirc);
+                        editForm.appendChild(document.createElement('br'));
+
                         //NEW ATTRIBUTE FORM
                         let editNewName = document.createElement('input');
                         editNewName.id = 'editCircNewName'+(i+1);
@@ -675,6 +713,37 @@ function addSVGToViewLog(svg) {
                             if (document.getElementById('editCircNewName'+(i+1)).value && document.getElementById('editCircNewValue'+(i+1)).value) {
                                 setAttAjax(svg.name, 1, i, document.getElementById('editCircNewName'+(i+1)).value, document.getElementById('editCircNewValue'+(i+1)).value);
                                 changed = true;
+                            }
+                            if (document.getElementById('scaleCirc'+(i+1)).value) {
+                                if (parseFloat(document.getElementById('scaleCirc'+(i+1)).value) > 0) {
+                                    $.ajax({
+                                        type: 'get',
+                                        dataType: 'json',
+                                        url: '/scale',
+                                        data: {
+                                            file: svg.name,
+                                            type: 1,
+                                            index: i,
+                                            factor: parseFloat(document.getElementById('scaleCirc'+(i+1)).value)
+                                        },
+                                        success: function (data) {
+                                            if (data.status == -1) {
+                                                alert("Created invalid SVG...");
+                                            }
+                                            if (data.status == 0) {
+                                                alert("Could not save this scaling...");
+                                            }
+                                        },
+                                        fail: function(error) {
+                                            console.log(error);
+                                            alert(error);
+                                        }
+                                    });
+                                    changed = true;
+                                }
+                                else {
+                                    alert("Please enter a valid scaling factor.");
+                                }
                             }
 
                             $('#editCirc').slideUp();
@@ -1024,105 +1093,247 @@ function addSVGToViewLog(svg) {
 
 
     //===================================================ADDING COMPONENT SECTION============================================
-    $('#addRectHeader').click(function(e) {
+    document.getElementById('addRectHeaderDiv').innerHTML = "";//delete old header
+    let addRectHeader = document.createElement('h10');
+    addRectHeader.className = 'addHeader';
+    addRectHeader.innerHTML = 'Add Rect';
+    document.getElementById('addRectHeaderDiv').appendChild(addRectHeader);
+    
+    addRectHeader.onclick = function(e) {
         e.preventDefault();
         $('#addRectForm').slideDown();
-    });
 
-    $("#addRectSubmit").click(function (e) {//SUBMIT BUTToN PRESSED
-        e.preventDefault();
-        if (document.getElementById('newRectW').value < 0 || document.getElementById('newRectH').value < 0) {
-            alert("Width/Height of a circle cannot be negative.");
-        }
-        else if (document.getElementById('newRectX').value && document.getElementById('newRectY').value && document.getElementById('newRectW').value && document.getElementById('newRectH').value) {
-            rectangle = {
-                x: parseFloat(document.getElementById('newRectX').value),
-                y: parseFloat(document.getElementById('newRectY').value),
-                w: parseFloat(document.getElementById('newRectW').value),
-                h: parseFloat(document.getElementById('newRectH').value),
-                units: document.getElementById('newRectUnits').value
+        document.getElementById('addRectSubmitDiv').innerHTML = "";//delete old submit button
+        let submitButton = document.createElement('button');
+        submitButton.className = "submitButton";
+        submitButton.innerHTML = "Submit";
+        document.getElementById('addRectSubmitDiv').appendChild(submitButton);
+
+        submitButton.onclick = function(e) {//SUBMIT BUTToN PRESSED
+            e.preventDefault();
+            if (document.getElementById('newRectW').value < 0 || document.getElementById('newRectH').value < 0) {
+                alert("Width/Height of a rectangle cannot be negative.");
             }
-            let str = JSON.stringify(rectangle)
-            //alert(str);
-            $.ajax({
-                type: 'get',
-                dataType: 'json',
-                url: '/addrect',
-                data: {
-                    file: svg.name,
-                    str: str,
-                    fill: document.getElementById('newRectFill').value
-                },
-                
-                success: function (data) {
-                    if (!data.status) {
-                        alert("Something went wrong with adding this component...");
-                    }
-                },
-
-                fail: function (error) {
-                    alert("error adding component "+error);
+            else if (document.getElementById('newRectX').value && document.getElementById('newRectY').value && document.getElementById('newRectW').value && document.getElementById('newRectH').value) {
+                rectangle = {
+                    x: parseFloat(document.getElementById('newRectX').value),
+                    y: parseFloat(document.getElementById('newRectY').value),
+                    w: parseFloat(document.getElementById('newRectW').value),
+                    h: parseFloat(document.getElementById('newRectH').value),
+                    units: document.getElementById('newRectUnits').value
                 }
-            })
-            $('#addRectForm').slideUp();
-            window.location.reload();
-        }
-        else if (document.getElementById('newRectX').value || document.getElementById('newRectY').value || document.getElementById('newRectW').value || document.getElementById('newRectH').value){
-            alert("Please enter values for all necessary parameters!");
-        }
-        else {
-            $('#addRectForm').slideUp();
-        }
-    });
+                let str = JSON.stringify(rectangle);
+
+                $.ajax({
+                    type: 'get',
+                    dataType: 'json',
+                    url: '/addrect',
+                    data: {
+                        file: svg.name,
+                        str: str,
+                        fill: document.getElementById('newRectFill').value
+                    },
+                
+                    success: function (data) {
+                        if (!data.status) {
+                            alert("Something went wrong with adding this component...");
+                        }  
+                    },
+
+                    fail: function (error) {
+                        alert("error adding component "+error);
+                    }
+                });
+                $('#addRectForm').slideUp();
+                window.location.reload();
+            }
+            else if (document.getElementById('newRectX').value || document.getElementById('newRectY').value || document.getElementById('newRectW').value || document.getElementById('newRectH').value){
+                alert("Please enter values for all necessary parameters!");
+            }
+            else {
+                $('#addRectForm').slideUp();
+            }
+        };
+    };
 
     //add circle
-    $('#addCircHeader').click(function(e) {
+    document.getElementById('addCircHeaderDiv').innerHTML = "";//delete old header
+    let addCircHeader = document.createElement('h10');
+    addCircHeader.className = 'addHeader';
+    addCircHeader.innerHTML = 'Add Circ';
+    document.getElementById('addCircHeaderDiv').appendChild(addCircHeader);
+    
+    addCircHeader.onclick = function(e) {
         e.preventDefault();
+        
         $('#addCircForm').slideDown();
-    });
 
-    $("#addCircSubmit").click(function (e) {//SUBMIT BUTToN PRESSED
-        e.preventDefault();
-        if (parseFloat(document.getElementById('newCircR').value) < 0) {
-            alert("Radius of a circle cannot be negative.");
-        }
-        else if(document.getElementById('newCircCX').value && document.getElementById('newCircCY').value && document.getElementById('newCircR').value) {
-            circle = {
-                cx: parseFloat(document.getElementById('newCircCX').value),
-                cy: parseFloat(document.getElementById('newCircCY').value),
-                r: parseFloat(document.getElementById('newCircR').value),
-                units: document.getElementById('newCircUnits').value
+        document.getElementById('addCircSubmitDiv').innerHTML = "";//delete old submit button
+        let submitButton = document.createElement('button');
+        submitButton.className = "submitButton";
+        submitButton.innerHTML = "Submit";
+        document.getElementById('addCircSubmitDiv').appendChild(submitButton);
+
+        submitButton.onclick = function(e) {//SUBMIT BUTToN PRESSED
+            e.preventDefault();
+            if (parseFloat(document.getElementById('newCircR').value) < 0) {
+                alert("Radius of a circle cannot be negative.");
             }
-            let str = JSON.stringify(circle)
-            alert(str);
-            $.ajax({
-                type: 'get',
-                dataType: 'json',
-                url: '/addcirc',
-                data: {
-                    file: svg.name,
-                    str: str,
-                    fill: document.getElementById('newCircFill').value
-                },
-                
-                success: function (data) {
-                    if (!data.status) {
-                        alert("Something went wrong with adding this component...");
-                    }
-                },
+            else if(document.getElementById('newCircCX').value && document.getElementById('newCircCY').value && document.getElementById('newCircR').value) {
+                circle = {
+                    cx: parseFloat(document.getElementById('newCircCX').value),
+                    cy: parseFloat(document.getElementById('newCircCY').value),
+                    r: parseFloat(document.getElementById('newCircR').value),
+                    units: document.getElementById('newCircUnits').value
+                };
+                let str = JSON.stringify(circle);
 
-                fail: function (error) {
-                    alert("error adding component "+error);
+                $.ajax({
+                    type: 'get',
+                    dataType: 'json',
+                    url: '/addcirc',
+                    data: {
+                        file: svg.name,
+                        str: str,
+                        fill: document.getElementById('newCircFill').value
+                    },
+                
+                    success: function (data) {
+                        if (!data.status) {
+                            alert("Something went wrong with adding this component...");
+                        }
+                    },
+
+                    fail: function (error) {
+                        alert("error adding component "+error);
+                    }
+                });
+                $('#addCircForm').slideUp();
+                window.location.reload();
+            }
+            else if (document.getElementById('newCircCX').value || document.getElementById('newCircCY').value || document.getElementById('newCircR').value) {
+                alert("Please enter values for all necessary parameters!");
+            }
+            else {
+                $('#addCircForm').slideUp();
+            }
+        };
+    };
+
+//===============================================CHANGE TITLE/DESC===================================================
+    document.getElementById('changeTitleHeaderDiv').innerHTML = "";//delete old header
+    let changeTitleHeader = document.createElement('h10');
+    changeTitleHeader.className = 'addHeader';
+    changeTitleHeader.innerHTML = 'Title/Desc';
+    document.getElementById('changeTitleHeaderDiv').appendChild(changeTitleHeader);
+    
+    changeTitleHeader.onclick = function(e) {
+        e.preventDefault();
+        
+        $('#changeTitleForm').slideDown();
+
+        document.getElementById('changeTitleSubmitDiv').innerHTML = "";//delete old submit button
+        let submitButton = document.createElement('button');
+        submitButton.className = "submitButton";
+        submitButton.innerHTML = "Submit";
+        document.getElementById('changeTitleSubmitDiv').appendChild(submitButton);
+
+        submitButton.onclick = function(e) {//SUBMIT BUTToN PRESSED
+            e.preventDefault();
+            if (!document.getElementById('changeTitleValue').value && !document.getElementById('changeTitleType').value) {
+                $('#changeTitleForm').slideUp();
+            }
+            else if(!document.getElementById('changeTitleValue').value || !document.getElementById('changeTitleType').value) {
+                alert("Please enter values for both the type and the new value.");
+            }
+            else if(document.getElementById('changeTitleType').value != "desc" && document.getElementById('changeTitleType').value != "title") {
+                alert("Type entered is not valid, please enter \"desc\" or \"title\".");
+            }
+            else {
+    
+                $.ajax({
+                    type: 'get',
+                    dataType: 'json',
+                    url: '/titledesc',
+                    data: {
+                        file: svg.name,
+                        text: document.getElementById('changeTitleValue').value,
+                        type: document.getElementById('changeTitleType').value
+                    },
+                    
+                    success: function (data) {
+                        if (!data.status) {
+                            alert("Something went wrong with changing the title...");
+                        }
+                    },
+    
+                    fail: function (error) {
+                        alert("error adding component "+error);
+                    }
+                });
+                $('#changeTitleForm').slideUp();
+                window.location.reload();
+            }
+        };
+    };
+
+    //===============================================BONUS: SCALE ALL SHAPES===================================================
+    document.getElementById('scaleAllHeaderDiv').innerHTML = "";//delete old header
+    let scaleAllHeader = document.createElement('h10');
+    scaleAllHeader.className = 'addHeader';
+    scaleAllHeader.innerHTML = 'Scale Shapes';
+    document.getElementById('scaleAllHeaderDiv').appendChild(scaleAllHeader);
+    
+    scaleAllHeader.onclick = function(e) {
+        e.preventDefault();
+        
+        $('#scaleAllForm').slideDown();
+
+        document.getElementById('scaleAllSubmitDiv').innerHTML = "";//delete old submit button
+        let submitButton = document.createElement('button');
+        submitButton.className = "submitButton";
+        submitButton.innerHTML = "Submit";
+        document.getElementById('scaleAllSubmitDiv').appendChild(submitButton);
+
+        submitButton.onclick = function(e) {//SUBMIT BUTToN PRESSED
+            e.preventDefault();
+            if (!document.getElementById('scaleAllType').value && !document.getElementById('scaleAllFactor').value) {
+                $('#scaleAllForm').slideUp();
+            }
+            else if (document.getElementById('scaleAllType').value != "rect" && document.getElementById('scaleAllType').value != "circ" && document.getElementById('scaleAllType').value != "image") {
+                alert("Please enter one of the specified types.");
+            }
+            else {
+                if (parseFloat(document.getElementById('scaleAllFactor').value) > 0) {
+                    $.ajax({
+                        type: 'get',
+                        dataType: 'json',
+                        url: '/scaleall',
+                        data: {
+                            file: svg.name,
+                            type: document.getElementById('scaleAllType').value,
+                            factor: parseFloat(document.getElementById('scaleAllFactor').value)
+                        },
+                        success: function (data) {
+                            if (data.status == -1) {
+                                alert("Created invalid SVG...");
+                            }
+                            if (data.status == 0) {
+                                alert("Could not save this scaling...");
+                            }
+                        },
+                        fail: function(error) {
+                            console.log(error);
+                            alert(error);
+                        }
+                    });
+                    $('#scaleAllForm').slideUp();
+                    window.location.reload();
                 }
-            })
-            $('#addCircForm').slideUp();
-            window.location.reload();
-        }
-        else if (document.getElementById('newCircCX').value || document.getElementById('newCircCY').value || document.getElementById('newCircR').value) {
-            alert("Please enter values for all necessary parameters!");
-        }
-        else {
-            $('#addCircForm').slideUp();
-        }
-    });
+                else {
+                    alert("Please enter a valid scaling factor.");
+                }
+            }
+        };
+    };
 }

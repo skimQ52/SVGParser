@@ -34,6 +34,9 @@
           <th class="fixedHeader">Number of paths</th>
           <th class="fixedHeader">Number of groups</th>
         </tr>
+        <tr id="noFilesRow">
+            <td>No Files!</td>
+        </tr>
       </table>
       <form ref='uploadForm' id='uploadForm' action='/upload' method='post' encType="multipart/form-data" onsubmit="uploadedSVG()">
         <div class="form-group">
@@ -53,7 +56,7 @@
         <p id="yo"></p><!--for testing-->
         <table id="viewLogTable">
           <tr><!--IMAGE ROW-->
-            <img id="imgVL" src="temp/quad01.svg" width="800px">
+            <img id="imgVL" width="800px">
           </tr>
           <tr><!--Row for title and desc-->
             <table id="titleTable" border="1">
@@ -61,7 +64,9 @@
                 <th>Title (max 256 chars)</th>
                 <th>Description (max 256 chars)</th>
               </tr>
-              <tr id="titleRow" contenteditable="true"><!-- title and description-->
+              <tr id="titleRow"><!-- title and description-->
+                <td id="titleCell"></td>
+                <td id="descCell"></td>
               </tr>
             </table>
           </tr>
@@ -118,40 +123,92 @@
         </div>
         <div id="addParent" class="addParent">
             <div id="addRect" class="add">
-                <h10 id="addRectHeader" class="addHeader">Add Rect</h10><br>
+                <div id="addRectHeaderDiv">
+                    <h10 id="addRectHeader" class="addHeader">Add Rect</h10><br>
+                </div>
                 <form id="addRectForm">
                     <label for="newRectX">x:</label><br>
                     <input type="text" id="newRectX" name="newRectX"><br>
-                    <label for="newRectY"></label>y:<br>
+                    <label for="newRectY">y:</label><br>
                     <input type="text" id="newRectY" name="newRectY"><br>
-                    <label for="newRectW"></label>width:<br>
+                    <label for="newRectW">width:</label><br>
                     <input type="text" id="newRectW" name="newRectW"><br>
-                    <label for="newRectH"></label>height:<br>
+                    <label for="newRectH">height:</label><br>
                     <input type="text" id="newRectH" name="newRectH"><br>
-                    <label for="newRectUnits"></label>units (optional):<br>
+                    <label for="newRectUnits">units (optional):</label><br>
                     <input type="text" id="newRectUnits" name="newRectUnits"><br>
-                    <label for="newRectFill"></label>fill (optional):<br>
+                    <label for="newRectFill">fill (optional):</label><br>
                     <input type="text" id="newRectFill" name="newRectFill"><br>
-                    <button id="addRectSubmit" class="submitButton">Submit</button>
+                    <div id="addRectSubmitDiv">
+                        <button id="addRectSubmit" class="submitButton">Submit</button>
+                    </div>
                 </form>
             </div>
             <div id="addCirc" class="add">
-                <h7 id="addCircHeader" class="addHeader">Add Circle</h7><br>
+                <div id="addCircHeaderDiv">
+                    <h7 id="addCircHeader" class="addHeader">Add Circle</h7><br>
+                </div>
                 <form id="addCircForm">
                     <label for="newCircCX">cx:</label><br>
                     <input type="text" id="newCircCX" name="newCircCX"><br>
-                    <label for="newCircCY"></label>cy:<br>
+                    <label for="newCircCY">cy:</label><br>
                     <input type="text" id="newCircCY" name="newCircCY"><br>
-                    <label for="newCircR"></label>radius:<br>
+                    <label for="newCircR">radius:</label><br>
                     <input type="text" id="newCircR" name="newCircR"><br>
-                    <label for="newCircUnits"></label>units (optional):<br>
+                    <label for="newCircUnits">units (optional):</label><br>
                     <input type="text" id="newCircUnits" name="newCircUnits"><br>
-                    <label for="newCircFill"></label>fill (optional):<br>
+                    <label for="newCircFill">fill (optional):</label><br>
                     <input type="text" id="newCircFill" name="newCircFill"><br>
-                    <button id="addCircSubmit" class="submitButton">Submit</button>
+                    <div id="addCircSubmitDiv">
+                        <button id="addCircSubmit" class="submitButton">Submit</button>
+                    </div>
+                </form>
+            </div>
+            <div id="changeTitle" class="add">
+                <div id="changeTitleHeaderDiv">
+                    
+                </div>
+                <form id="changeTitleForm">
+                    <label for="changeTitleType">"title" or "desc":</label><br>
+                    <input type="text" id="changeTitleType" name="changeTitleType"><br>
+                    <label for="changeTitleValue">new value:</label><br>
+                    <input type="text" id="changeTitleValue" name="changeTitleValue"><br>
+                    <div id="changeTitleSubmitDiv">
+                         
+                    </div>
+                </form>
+            </div>
+            <div id="scaleAll" class="add">
+                <div id="scaleAllHeaderDiv">
+                    
+                </div>
+                <form id="scaleAllForm">
+                    <label for="scaleAllType">"rect","circ" or "image":</label><br>
+                    <input type="text" id="scaleAllType" name="scaleAllType"><br>
+                    <label for="scaleAllFactor">factor:</label><br>
+                    <input type="text" id="scaleAllFactor" name="scaleAllFactor"><br>
+                    <div id="scaleAllSubmitDiv">
+                         
+                    </div>
                 </form>
             </div>
         </div>
+    </div>
+    <hr>
+    <div id="addSVG">
+        <h7 id="addSVGHeader" class="addHeader">Create New SVG</h7><br>
+        <form id="addSVGForm">
+            <label for="newSVGName">Filename (.svg):</label><br>
+            <input type="text" id="newSVGName" name="newSVGName"><br>
+            <label for="newSVGTitle">Title (optional, max 256):</label><br>
+            <input type="text" id="newSVGTitle" name="newSVGTitle" maxlength="256"><br>
+            <label for="newSVGDesc">Description (optional, max 256):</label><br>
+            <input type="text" id="newSVGDesc" name="newSVGDesc" maxlength="256"><br>
+            <label for="newSVGView">Viewbox (px, default: 800):</label><br>
+            <input type="text" id="newSVGView" name="newSVGView"><br>
+
+            <button id="addSVGSubmit" class="submitButton">Submit</button>
+        </form>
     </div>
     <hr>
     <div id="blah">I am blah</div>

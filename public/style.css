@@ -222,7 +222,7 @@ table td:hover {
     padding: 0px, 10px;
     float: left;
     display: inline;
-    width: 50%;
+    width: 25%;
 }
 
 .addHeader {
@@ -230,8 +230,7 @@ table td:hover {
     font-family: Impact, Haettenschweiler;
     color:rgb(20, 20, 20);
     font-size: 350%;
-    margin: 20px;
-    margin-left: 30px;
+    margin-top: 20px;
     user-select: none;
     transition: 0.4s;
 }
