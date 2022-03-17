@@ -226,10 +226,9 @@ table td:hover {
 }
 
 .addHeader {
-    font-size: 35px;
     font-family: Impact, Haettenschweiler;
     color:rgb(20, 20, 20);
-    font-size: 300%;
+    font-size: 250%;
     margin-top: 20px;
     user-select: none;
     transition: 0.4s;
@@ -242,6 +241,10 @@ table td:hover {
     text-shadow: #000 0px 0px 1px,   #000 0px 0px 1px,   #000 0px 0px 1px, #000 0px 0px 1px,   #000 0px 0px 1px,   #000 0px 0px 1px, #000 0px 0px 1px,   #000 0px 0px 1px,   #000 0px 0px 1px, #000 0px 0px 1px, #000 0px 0px 1px,   #000 0px 0px 1px;
     -webkit-font-smoothing: antialiased;
     transform: translate(-13px, -13px);
+}
+
+.inputAdd {
+    width: 80%;
 }
 
 

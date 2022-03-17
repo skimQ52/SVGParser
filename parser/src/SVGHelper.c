@@ -1009,6 +1009,7 @@ int scaleAllComponents(const char* fileName, const char* schemaFile, const char*
         freeList(rects);
     }
 
+    i = 0;
     if (strcmp(type, "circ") == 0 || strcmp(type, "image") == 0) {//type Circle
         List* circs = getCircles(svg);
         ListIterator iter = createIterator(circs);

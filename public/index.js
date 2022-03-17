@@ -35,7 +35,6 @@ jQuery(document).ready(function() {
             alert('Please provide a valid filename! (.svg)');
         }
         else {
-            alert(document.getElementById('newSVGName').value+document.getElementById('newSVGTitle').value+document.getElementById('newSVGDesc').value+document.getElementById('newSVGView').value);
             $.ajax({
                 type: 'get',
                 dataType: 'json',
@@ -127,6 +126,7 @@ jQuery(document).ready(function() {
 
 function setAttAjax(svgName, type, index, attName, attValue) {
     $.ajax({
+        async: false,
         type: 'get',
         dataType: 'json',
         url: '/changeatt',
@@ -459,6 +459,7 @@ function addSVGToViewLog(svg) {
                             if (document.getElementById('scaleRect'+(i+1)).value) {
                                 if (parseFloat(document.getElementById('scaleRect'+(i+1)).value) > 0) {
                                     $.ajax({
+                                        async: false,
                                         type: 'get',
                                         dataType: 'json',
                                         url: '/scale',
@@ -705,6 +706,7 @@ function addSVGToViewLog(svg) {
                             if (document.getElementById('scaleCirc'+(i+1)).value) {
                                 if (parseFloat(document.getElementById('scaleCirc'+(i+1)).value) > 0) {
                                     $.ajax({
+                                        async: false,
                                         type: 'get',
                                         dataType: 'json',
                                         url: '/scale',
@@ -1105,8 +1107,17 @@ function addSVGToViewLog(svg) {
             else if (!document.getElementById('newRectX').value || !document.getElementById('newRectY').value || !document.getElementById('newRectW').value || !document.getElementById('newRectH').value) {
                 alert("Please enter values for all necessary parameters!");
             }
-            else if (!parseFloat(document.getElementById('newRectX').value) || !parseFloat(document.getElementById('newRectY').value) || !parseFloat(document.getElementById('newRectW').value) || !parseFloat(document.getElementById('newRectH').value)) {
-                alert("Values must be numeric...");
+            else if (!parseFloat(document.getElementById('newRectX').value) && parseFloat(document.getElementById('newRectX').value) != 0) {
+                alert("X value must be numeric...");
+            }
+            else if (!parseFloat(document.getElementById('newRectY').value) && parseFloat(document.getElementById('newRectY').value) != 0) {
+                alert("Y value must be numeric...");
+            }
+            else if (!parseFloat(document.getElementById('newRectW').value) && parseFloat(document.getElementById('newRectW').value) != 0) {
+                alert("Width value must be numeric...");
+            }
+            else if (!parseFloat(document.getElementById('newRectH').value) && parseFloat(document.getElementById('newRectH').value) != 0) {
+                alert("Height value must be numeric...");
             }
             else if (document.getElementById('newRectW').value < 0 || document.getElementById('newRectH').value < 0) {
                 alert("Width/Height of a rectangle cannot be negative.");
@@ -1122,6 +1133,7 @@ function addSVGToViewLog(svg) {
                 let str = JSON.stringify(rectangle);
 
                 $.ajax({
+                    async: false,
                     type: 'get',
                     dataType: 'json',
                     url: '/addrect',
@@ -1173,8 +1185,14 @@ function addSVGToViewLog(svg) {
             else if (!document.getElementById('newCircR').value || !document.getElementById('newCircCX').value || !document.getElementById('newCircCY').value) {
                 alert("Please enter values for all necessary parameters!");
             }
-            else if (!parseFloat(document.getElementById('newCircR').value) || !parseFloat(document.getElementById('newCircCX').value) || !parseFloat(document.getElementById('newCircCY').value)) {
-                alert("Values must be numeric...");
+            else if (!parseFloat(document.getElementById('newCircR').value) && parseFloat(document.getElementById('newCircR').value) != 0) {
+                alert("Radius value must be numeric...");
+            }
+            else if (!parseFloat(document.getElementById('newCircCX').value) && parseFloat(document.getElementById('newCircCX').value) != 0) {
+                alert("CX value must be numeric...");
+            }
+            else if (!parseFloat(document.getElementById('newCircCY').value) && parseFloat(document.getElementById('newCircCY').value) != 0) {
+                alert("CY value must be numeric...");
             }
             else if (parseFloat(document.getElementById('newCircR').value) < 0) {
                 alert("Radius of a circle cannot be negative.");
@@ -1189,6 +1207,7 @@ function addSVGToViewLog(svg) {
                 let str = JSON.stringify(circle);
 
                 $.ajax({
+                    async: false,
                     type: 'get',
                     dataType: 'json',
                     url: '/addcirc',
@@ -1246,6 +1265,7 @@ function addSVGToViewLog(svg) {
             else {
     
                 $.ajax({
+                    async: false,
                     type: 'get',
                     dataType: 'json',
                     url: '/titledesc',
@@ -1300,6 +1320,7 @@ function addSVGToViewLog(svg) {
             else {
                 if (parseFloat(document.getElementById('scaleAllFactor').value) > 0) {
                     $.ajax({
+                        async: false,
                         type: 'get',
                         dataType: 'json',
                         url: '/scaleall',
@@ -1359,6 +1380,7 @@ function addSVGToViewLog(svg) {
                 input.value = svgAtts[j].value;
                 input.name = 'svgAtt'+j;
                 input.id = 'svgAtt'+j;
+                input.className = "inputAdd";
                 let label = document.createElement('label');
                 label.for = input.name;
                 label.innerHTML = svgAtts[j].name;
@@ -1372,6 +1394,7 @@ function addSVGToViewLog(svg) {
             let editNewName = document.createElement('input');
             editNewName.id = 'svgAttsNewName';
             editNewName.name = 'svgAttsNewName';
+            editNewName.className = "inputAdd";
             let editNewNameLabel = document.createElement('label');
             editNewNameLabel.for = 'svgAttsNewName';
             editNewNameLabel.innerHTML = "New Attribute Name: ";
@@ -1383,6 +1406,7 @@ function addSVGToViewLog(svg) {
             let editNewValue = document.createElement('input');
             editNewValue.id = 'svgAttsNewValue';
             editNewValue.name = 'svgAttsNewValue';
+            editNewValue.className = "inputAdd";
             let editNewValueLabel = document.createElement('label');
             editNewValueLabel.for = 'svgAttsNewValue';
             editNewValueLabel.innerHTML = "New Attribute Value: ";

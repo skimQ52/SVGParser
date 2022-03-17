@@ -219,7 +219,35 @@ app.get('/attributes', function(req, res) {
     });
 });
 
+//adding circle
+app.get('/addcirc', function(req, res) {
+    let filepath = 'uploads/' + req.query.file;
+    let fillValue;
+    let status;
+    console.log("adding new circ to file: "+req.query.file);
+    if (!req.query.fill) {
+        fillValue = "";
+    }
+    else {
+        fillValue = req.query.fill;
+    }
+
+    let circ = JSON.parse(req.query.str);
+    if (addCircToSVG(filepath, 'svg.xsd', circ.cx, circ.cy, circ.r, circ.units, fillValue) == 1) {
+        console.log('successfully added circ');
+        status = 1;
+    }
+    else {
+        console.log('failed to add circ');
+        status = 0;
+    }
+    res.send({
+        status: status
+    });
+});
+
 app.get('/immediate', function(req, res) {
+    //console.log("checking if "+req.query.type+req.query.index+" is an immediate child");
     let filepath = 'uploads/' + req.query.file;
     let truth = checkIfImmediateSVG(filepath, 'svg.xsd', req.query.type, req.query.index);
     res.send({
@@ -305,33 +333,6 @@ app.get('/addrect', function(req, res) {
     }
     else {
         console.log('failed to add rect');
-        status = 0;
-    }
-    res.send({
-        status: status
-    });
-});
-
-//adding circle
-app.get('/addcirc', function(req, res) {
-    let filepath = 'uploads/' + req.query.file;
-    let fillValue;
-    let status;
-    console.log("adding new circ to file: "+req.query.file);
-    if (!req.query.fill) {
-        fillValue = "";
-    }
-    else {
-        fillValue = req.query.fill;
-    }
-
-    let circ = JSON.parse(req.query.str);
-    if (addCircToSVG(filepath, 'svg.xsd', circ.cx, circ.cy, circ.r, circ.units, fillValue) == 1) {
-        console.log('successfully added circ');
-        status = 1;
-    }
-    else {
-        console.log('failed to add circ');
         status = 0;
     }
     res.send({
