@@ -124,10 +124,7 @@ app.post('/upload', function(req, res) {
 
 //Respond to GET requests for files in the uploads/ directory
 app.get('/uploads/:name', function(req , res) {
-    /*if (!validateUploadedSVG(uploadFile, 'svg.xsd')) {
-        console.log("INVALID SVG! Cannot be uploaded.");
-        res.send('');
-    }*/
+
   fs.stat('uploads/' + req.params.name, function(err, stat) {
     if (err == null) {
         res.sendFile(path.join(__dirname+'/uploads/' + req.params.name));
@@ -145,6 +142,7 @@ app.get('/uploads/:name', function(req , res) {
 app.get('/files', function(req, res) {
     const uploadsDir = path.join(__dirname, 'uploads');
     var fileList = [];
+    let status = 1;
     fs.readdir(uploadsDir, function (err, files) {
 
         if (err) {
@@ -154,7 +152,8 @@ app.get('/files', function(req, res) {
         files.forEach(function(file) {
             if (file.split('.').pop() == "svg") {//if svg file
                 if (!validateUploadedSVG('uploads/'+file, 'svg.xsd')) {
-                    console.log("INVALID SVG "+file+" Cannot be uploaded --> deleting file from server.");
+                    console.log("INVALID SVG: "+file+" Cannot be uploaded --> deleting file from server.");
+                    status = 0;
                     fs.unlinkSync('uploads/'+file);
                 }
                 else {
@@ -163,18 +162,23 @@ app.get('/files', function(req, res) {
                 };
                 i++;
             }
+            else {//if not an svg type file
+                console.log("INVALID FILE TYPE: "+file+" Cannot be uploaded --> deleting file from server.");
+                status = 0;
+                fs.unlinkSync('uploads/'+file);
+            }
         });
         let str = JSON.stringify(fileList);
         res.send({
-            files: str
+            files: str,
+            status: status
         });
     });
 });
 
 //USED FOR SVG FILE LOG PANEL, ON ONLOAD right after /files endpoint ^^
 app.get('/onload', function(req, res) {
-    //console.log('uploads/'+req.query.fileSent);
-    //console.log(req.query.data1);
+
     let svgJSON = createSVGtoJSON('uploads/' + req.query.fileSent, 'svg.xsd');
     let svg = JSON.parse(svgJSON);
     var stats = fs.statSync("uploads/"+req.query.fileSent);
@@ -209,9 +213,7 @@ app.get('/viewlog', function(req, res) {
 //for getting attributes
 app.get('/attributes', function(req, res) {
     let filepath = 'uploads/' + req.query.file;
-    //console.log(filepath+req.query.type+req.query.index);
     let atts = getOtherAttributesJSON(filepath, 'svg.xsd', req.query.type, req.query.index);
-    //console.log(atts);
     res.send({
         str: atts
     });
@@ -219,9 +221,7 @@ app.get('/attributes', function(req, res) {
 
 app.get('/immediate', function(req, res) {
     let filepath = 'uploads/' + req.query.file;
-    //console.log(filepath+" at immediate...");
     let truth = checkIfImmediateSVG(filepath, 'svg.xsd', req.query.type, req.query.index);
-    //console.log(truth);
     res.send({
         truth: truth
     });
@@ -240,23 +240,23 @@ app.get('/titledesc', function(req, res) {
 //when changing attributes
 app.get('/changeatt', function(req, res) {
     let filepath = 'uploads/' + req.query.file;
-    //console.log(filepath+" "+req.query.type+" "+req.query.index+" "+req.query.attName+" "+req.query.attValue);
-    //console.log(setAttributeNewSVG(filepath, 'svg.xsd', req.query.type, req.query.index, req.query.attName, req.query.attValue));
+    console.log("setting attribute of "+req.query.type+" "+req.query.index+" with the name "+req.query.attName+" and the value "+req.query.attValue);
+
     let status = setAttributeNewSVG(filepath, 'svg.xsd', req.query.type, req.query.index, req.query.attName, req.query.attValue);
     if (status == -1) {
         console.log("invalid attribute!");
-        res.send("invalid attribute!");
     }
     if (status == 0) {
         console.log("failed to writeSVG");
-        res.send("failed to writeSVG");
     }
+    res.send({
+        status: status
+    });
 });
 
 //scale component
 app.get('/scale', function(req, res) {
     let filepath = 'uploads/' + req.query.file;
-    //console.log(filepath+" "+req.query.type+" "+req.query.index+" "+req.query.attName+" "+req.query.attValue);
     console.log(req.query.file+': scaling component '+req.query.type+" "+req.query.index+" by factor "+req.query.factor);
     let status = scaleComponent(filepath, 'svg.xsd', req.query.type, req.query.index, req.query.factor);
     if (status == -1) {
@@ -273,7 +273,6 @@ app.get('/scale', function(req, res) {
 //scale ALL component
 app.get('/scaleall', function(req, res) {
     let filepath = 'uploads/' + req.query.file;
-    //console.log(filepath+" "+req.query.type+" "+req.query.index+" "+req.query.attName+" "+req.query.attValue);
     console.log(req.query.file+': scaling all components of type '+req.query.type+" by factor "+req.query.factor);
     let status = scaleAllComponents(filepath, 'svg.xsd', req.query.type, req.query.factor);
     if (status == -1) {
@@ -299,7 +298,6 @@ app.get('/addrect', function(req, res) {
     else {
         fillValue = req.query.fill;
     }
-    //console.log(filepath+req.query.str+fillValue);
     let rect = JSON.parse(req.query.str);
     if (addRectToSVG(filepath, 'svg.xsd', rect.x, rect.y, rect.w, rect.h, rect.units, fillValue)) {
         console.log('successfully added rect');
@@ -358,17 +356,6 @@ app.get('/createsvg', function(req, res) {
     res.send({
         status: status
     });
-});
-
-//Sample endpoint
-app.get('/endpoint1', function(req , res){
-  let retStr = req.query.data1 + " " + req.query.data2;
- 
-  res.send(
-    {
-      somethingElse: retStr
-    }
-  );
 });
 
 app.listen(portNum);

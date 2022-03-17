@@ -1,27 +1,9 @@
-//FOR TESTING VEFORE SERVERSIDE
-var svg1 = {
-    img: "temp/quad01.svg",
-    name: "quad01.svg",
-    title: "Example quad01 - quadratic Bezier commands in path data",
-    description: "Picture showing a \"Q\" a \"T\" command, along with annotations showing the control points and end points",
-    size: "1kb",
-    rectangles: [{"x": 34, "y": 32, "w": 12.2, "h": 10.2, "numAttr":1, "units":"cm"}],
-    circles: [{"cx":32,"cy":32,"r":30,"numAttr":1,"units":""},{"cx":3.52,"cy":322,"r":39,"numAttr":0,"units":"cm"}],
-    paths: [{"d":"m47 36c-15 0-15 0-29.9 0-2.1 0-2.1 4-.1 4","numAttr":0},{"d":"m47 36c-15 0-15 0-29.9 0-2.1 0-2.1 4-.1 4 10.4 0 19.6 0 30 0 2 0","numAttr":1}],
-    groups: [{"children":2,"numAttr":1},{"children":3,"numAttr":1},{"children":2,"numAttr":1}]
-};
-
-var svg2 = {
-    img: "temp/Emoji_poo.svg",
-    name: "Emoji_poo.svg",
-    size: "1kb",
-    numRect: "3",
-    numCirc: "2",
-    numPaths: "1",
-    numGroups: "566666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666"
-};
-
-
+/* index.js
+    INCLUDES CLIENT SIDE CODE!
+*  Author: Skylar Mawle 1143676
+*  CIS*2750 D. Nikitenko
+*
+*/
 // Put all onload AJAX calls here, and event listeners
 jQuery(document).ready(function() {
 
@@ -131,6 +113,9 @@ jQuery(document).ready(function() {
             
         },
         success: function (data) {
+            if (!data.status) {
+                alert("One or more of the files were invalid... They have been deleted from the server.");
+            }
             ajaxFilenameToJSON(data.files);
         },
         fail: function(error) {
@@ -153,7 +138,9 @@ function setAttAjax(svgName, type, index, attName, attValue) {
             attValue: attValue
         },
         success: function (data) {
-            
+            if (data.status == 0 || data.status == -1) {
+                alert("Invalid Attribute: "+attName)
+            }
         },
         fail: function(error) {
             console.log(error);
@@ -256,6 +243,7 @@ function addSVGToViewLog(svg) {
     $('#addCircForm').hide();
     $('#changeTitleForm').hide();
     $('#scaleAllForm').hide();
+    $('#svgAttsForm').hide();
 
     document.getElementById("imgVL").src = '/uploads/'+svg.name;
     document.getElementById("imgVL").width = 800;
@@ -1111,10 +1099,19 @@ function addSVGToViewLog(svg) {
 
         submitButton.onclick = function(e) {//SUBMIT BUTToN PRESSED
             e.preventDefault();
-            if (document.getElementById('newRectW').value < 0 || document.getElementById('newRectH').value < 0) {
+            if (!document.getElementById('newRectX').value && !document.getElementById('newRectY').value && !document.getElementById('newRectW').value && !document.getElementById('newRectH').value) {
+                $('#addRectForm').slideUp();
+            }
+            else if (!document.getElementById('newRectX').value || !document.getElementById('newRectY').value || !document.getElementById('newRectW').value || !document.getElementById('newRectH').value) {
+                alert("Please enter values for all necessary parameters!");
+            }
+            else if (!parseFloat(document.getElementById('newRectX').value) || !parseFloat(document.getElementById('newRectY').value) || !parseFloat(document.getElementById('newRectW').value) || !parseFloat(document.getElementById('newRectH').value)) {
+                alert("Values must be numeric...");
+            }
+            else if (document.getElementById('newRectW').value < 0 || document.getElementById('newRectH').value < 0) {
                 alert("Width/Height of a rectangle cannot be negative.");
             }
-            else if (document.getElementById('newRectX').value && document.getElementById('newRectY').value && document.getElementById('newRectW').value && document.getElementById('newRectH').value) {
+            else {
                 rectangle = {
                     x: parseFloat(document.getElementById('newRectX').value),
                     y: parseFloat(document.getElementById('newRectY').value),
@@ -1147,12 +1144,6 @@ function addSVGToViewLog(svg) {
                 $('#addRectForm').slideUp();
                 window.location.reload();
             }
-            else if (document.getElementById('newRectX').value || document.getElementById('newRectY').value || document.getElementById('newRectW').value || document.getElementById('newRectH').value){
-                alert("Please enter values for all necessary parameters!");
-            }
-            else {
-                $('#addRectForm').slideUp();
-            }
         };
     };
 
@@ -1176,10 +1167,19 @@ function addSVGToViewLog(svg) {
 
         submitButton.onclick = function(e) {//SUBMIT BUTToN PRESSED
             e.preventDefault();
-            if (parseFloat(document.getElementById('newCircR').value) < 0) {
+            if (!document.getElementById('newCircR').value && !document.getElementById('newCircCX').value && !document.getElementById('newCircCY').value) {
+                $('#addCircForm').slideUp();
+            }
+            else if (!document.getElementById('newCircR').value || !document.getElementById('newCircCX').value || !document.getElementById('newCircCY').value) {
+                alert("Please enter values for all necessary parameters!");
+            }
+            else if (!parseFloat(document.getElementById('newCircR').value) || !parseFloat(document.getElementById('newCircCX').value) || !parseFloat(document.getElementById('newCircCY').value)) {
+                alert("Values must be numeric...");
+            }
+            else if (parseFloat(document.getElementById('newCircR').value) < 0) {
                 alert("Radius of a circle cannot be negative.");
             }
-            else if(document.getElementById('newCircCX').value && document.getElementById('newCircCY').value && document.getElementById('newCircR').value) {
+            else {
                 circle = {
                     cx: parseFloat(document.getElementById('newCircCX').value),
                     cy: parseFloat(document.getElementById('newCircCY').value),
@@ -1210,12 +1210,6 @@ function addSVGToViewLog(svg) {
                 });
                 $('#addCircForm').slideUp();
                 window.location.reload();
-            }
-            else if (document.getElementById('newCircCX').value || document.getElementById('newCircCY').value || document.getElementById('newCircR').value) {
-                alert("Please enter values for all necessary parameters!");
-            }
-            else {
-                $('#addCircForm').slideUp();
             }
         };
     };
@@ -1281,7 +1275,7 @@ function addSVGToViewLog(svg) {
     document.getElementById('scaleAllHeaderDiv').innerHTML = "";//delete old header
     let scaleAllHeader = document.createElement('h10');
     scaleAllHeader.className = 'addHeader';
-    scaleAllHeader.innerHTML = 'Scale Shapes';
+    scaleAllHeader.innerHTML = 'Scale';
     document.getElementById('scaleAllHeaderDiv').appendChild(scaleAllHeader);
     
     scaleAllHeader.onclick = function(e) {
@@ -1336,4 +1330,101 @@ function addSVGToViewLog(svg) {
             }
         };
     };
+
+    //EDIT SVG ATTRIBUTES
+    document.getElementById('svgAttsHeaderDiv').innerHTML = "";//delete old header
+    let svgAttsHeader = document.createElement('h10');
+    svgAttsHeader.className = 'addHeader';
+    svgAttsHeader.innerHTML = 'Attributes';
+    document.getElementById('svgAttsHeaderDiv').appendChild(svgAttsHeader);
+    //CREATES CLICKABLE HEADER
+    let svgAtts;
+
+    $.ajax({//server req to get attribute list
+        type: 'get',
+        dataType: 'json',
+        url: '/attributes',
+        data: {
+            file: svg.name,
+            type: 0,//SVG_IMG IS TYPE 0
+            index: 1//INDEX DOESNT MATTER HERE
+        },
+        success: function (data) {
+            svgAtts = JSON.parse(data.str);
+
+            let svgAttsForm = document.getElementById('svgAttsForm');
+            svgAttsForm.innerHTML = "";//delete all old stuff
+            for (let j = 0; j < svgAtts.length; j++) {
+                let input = document.createElement('input');
+                input.value = svgAtts[j].value;
+                input.name = 'svgAtt'+j;
+                input.id = 'svgAtt'+j;
+                let label = document.createElement('label');
+                label.for = input.name;
+                label.innerHTML = svgAtts[j].name;
+                svgAttsForm.appendChild(label);
+                svgAttsForm.appendChild(document.createElement('br'));
+                svgAttsForm.appendChild(input);
+                svgAttsForm.appendChild(document.createElement('br'));
+            }
+
+            //NEW ATTRIBUTE FORM
+            let editNewName = document.createElement('input');
+            editNewName.id = 'svgAttsNewName';
+            editNewName.name = 'svgAttsNewName';
+            let editNewNameLabel = document.createElement('label');
+            editNewNameLabel.for = 'svgAttsNewName';
+            editNewNameLabel.innerHTML = "New Attribute Name: ";
+            svgAttsForm.appendChild(editNewNameLabel);
+            svgAttsForm.appendChild(document.createElement('br'));
+            svgAttsForm.appendChild(editNewName);
+            svgAttsForm.appendChild(document.createElement('br'));
+
+            let editNewValue = document.createElement('input');
+            editNewValue.id = 'svgAttsNewValue';
+            editNewValue.name = 'svgAttsNewValue';
+            let editNewValueLabel = document.createElement('label');
+            editNewValueLabel.for = 'svgAttsNewValue';
+            editNewValueLabel.innerHTML = "New Attribute Value: ";
+            svgAttsForm.appendChild(editNewValueLabel);
+            svgAttsForm.appendChild(document.createElement('br'));
+            svgAttsForm.appendChild(editNewValue);
+            svgAttsForm.appendChild(document.createElement('br'));
+
+            let submitButton2 = document.createElement('button');
+            submitButton2.className = "submitButton";
+            submitButton2.innerHTML = "Submit";
+            svgAttsForm.appendChild(submitButton2);
+
+            svgAttsHeader.onclick = function(e) {
+                e.preventDefault();
+                $('#svgAttsForm').slideDown();
+        
+                submitButton2.onclick = function(e) {//SUBMIT BUTToN PRESSED
+                    e.preventDefault();
+                    let changed = false;
+                    for (let j = 0; j < svgAtts.length; j++) {
+                        if (document.getElementById('svgAtt'+j).value != svgAtts[j].value) {
+                            setAttAjax(svg.name, 0, 1, svgAtts[j].name, document.getElementById('svgAtt'+j).value);//note INDEX IS USELESS HERE, SVG_IMG is type 0
+                            changed = true;
+                        }
+                    }
+                    if (document.getElementById('svgAttsNewName').value && document.getElementById('svgAttsNewValue').value) {
+                        setAttAjax(svg.name, 0, 1, document.getElementById('svgAttsNewName').value, document.getElementById('svgAttsNewValue').value);
+                        changed = true;
+                    }
+                    $('#svgAttsForm').slideUp();
+                    if (changed) {
+                        window.location.reload();
+                    }
+                };
+                $('#svgAttsForm').slideDown();
+            };
+        },
+        fail: function(error) {
+            console.log(error);
+            alert(error);
+        }
+    });
+
 }

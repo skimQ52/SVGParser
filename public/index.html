@@ -4,8 +4,8 @@
     <title>SVG Image Viewer</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="CHANGE ME">
-    <meta name="keywords" content="CHANGE ME">
+    <meta name="description" content="SVG image viewer and editor... Made by Skylar Mawle 1143676 for CIS2750">
+    <meta name="keywords" content="SVG">
     <meta name="author" content="Skylar Mawle">
     <!-- Load jquery, bootstrap -->
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -17,9 +17,8 @@
     <!-- Custom CSS End -->
 </head>
 <body>
-    <h3>SVG Image Viewer</h3>
-    Perhaps I should write a brief description describing what this is all about right here.<br>
-    <a href="rects.svg" download>rects.svg</a>
+    <h3 id="TITLE">SVG Image Viewer</h3>
+    SVG Image Viewer/Editor/Parser created by Skylar Mawle for CIS2750.<br><br>
 
     <div class="filelogTable">
       <h4 class="panelHeader">File Log Panel</h4>
@@ -122,6 +121,9 @@
             </div>
         </div>
         <div id="addParent" class="addParent">
+            <div id="svgEditDiv">
+
+            </div>
             <div id="addRect" class="add">
                 <div id="addRectHeaderDiv">
                     <h10 id="addRectHeader" class="addHeader">Add Rect</h10><br>
@@ -192,6 +194,20 @@
                     </div>
                 </form>
             </div>
+            <div id="svgAtts" class="add">
+                <div id="svgAttsHeaderDiv">
+                    
+                </div>
+                <form id="svgAttsForm">
+                    <label for="scaleAllType">"rect","circ" or "image":</label><br>
+                    <input type="text" id="scaleAllType" name="scaleAllType"><br>
+                    <label for="scaleAllFactor">factor:</label><br>
+                    <input type="text" id="scaleAllFactor" name="scaleAllFactor"><br>
+                    <div id="scaleAllSubmitDiv">
+                         
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
     <hr>
@@ -211,17 +227,10 @@
         </form>
     </div>
     <hr>
-    <div id="blah">I am blah</div>
-    <hr>
-    <form ref='someform' id='someform'>
-          <div class="form-group">
-                <label for="entryBox">Last Name</label>
-                <input type="text" class="form-control" id="entryBox" value="Value" placeholder="Placeholder">
-          </div>
-        <div class="form-group">
-            <input type='submit' class="btn btn-secondary">
-        </div>
-    </form>
+    <br>
+    <br>
+    <br>
+    <br>
 
     <!-- Leave me at the bottom of body -->
     <script src="/index.js"></script>
